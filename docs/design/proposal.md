@@ -24,15 +24,18 @@ HA-view nodig — de gebruiker plakt één kaart-YAML in een bestaande view (bv.
 die aanpak kan geen samengestelde status/waarschuwingen-logica, geen "wat gebeurt er bij
 moduswissel"-preview en geen automatisatie-overzicht renderen — dat vereist JS-logica, geen YAML.
 
-```
+```text
 pool-dashboard.js
 ├── Pure helpers (geen DOM/window — unit-testbaar)
 │   ├── escapeHtml / isUnavailable / parseNumeric
 │   ├── deriveStatus()         → normal | active | warning | critical | unavailable
 │   ├── actionServiceFor()     → domein-veilige service-lookup (zoals garden-dashboard)
 │   ├── shouldConfirm()
-│   ├── modeImpactSummary()    → tekstuele preview vóór moduswissel
+│   ├── setValueDomain()       → number/input_number-lookup voor setpoints (zoals garden-dashboard's durationControlDomain)
+│   ├── modeImpactSummary()    → tekstuele preview vóór moduswissel, uit `mode.impact` (auteurstijd, nooit gesynthetiseerd)
+│   ├── overridesFor()         → welke handmatige overrides actief zijn (voor de override-banner + "terug naar automatisch")
 │   ├── resolveThemeMode()     → theme_mode-config → wel/niet overschrijven van HA-thema-vars (§1a)
+│   ├── historyBars()          → history/period-respons → genormaliseerde staafhoogtes voor laag 4
 │   └── collectEntityIds() / hasRelevantChange()
 ├── PoolDashboardCard (custom element)
 │   ├── setConfig / set hass / getCardSize / getGridOptions
@@ -57,18 +60,18 @@ HA's native CSS custom properties met een donkere fallback voor standalone-previ
 HA vult deze properties zelf in op basis van het actieve thema — licht of donker — dus de kaart
 zelf bevat geen licht/donker-logica.
 
-| Kaarttoken | HA-bron | Donkere fallback | Lichte fallback (referentie) |
-|---|---|---|---|
-| `--pd-bg` | `--card-background-color` | `#20242d` | `#ffffff` |
-| `--pd-bg-raised` | `--secondary-background-color` | `#2b303a` | `#f7f9fa` |
-| `--pd-border` | `--divider-color` | `#343a46` | `#d8e1dc`-achtig (zie `prototype/styles.css:9`) |
-| `--pd-text` | `--primary-text-color` | `#f4f6f8` | `#18231f`-achtig (`prototype/styles.css:7`) |
-| `--pd-text-muted` | `--secondary-text-color` | `#8a94a3` | `#66736d`-achtig (`prototype/styles.css:8`) |
-| `--pd-ok` | `--success-color` | `#7ee787` | HA-standaard (thema-afhankelijk) |
-| `--pd-info` | `--info-color` | `#5cc8ff` | HA-standaard |
-| `--pd-warning` | `--warning-color` | `#ffd166` | HA-standaard |
-| `--pd-critical` | `--error-color` | `#ff6b6b` | HA-standaard |
-| `--pd-offline` | `--disabled-text-color` | `#6f7885` | HA-standaard |
+| Kaarttoken        | HA-bron                        | Donkere fallback | Lichte fallback (referentie)                    |
+| ----------------- | ------------------------------ | ---------------- | ----------------------------------------------- |
+| `--pd-bg`         | `--card-background-color`      | `#20242d`        | `#ffffff`                                       |
+| `--pd-bg-raised`  | `--secondary-background-color` | `#2b303a`        | `#f7f9fa`                                       |
+| `--pd-border`     | `--divider-color`              | `#343a46`        | `#d8e1dc`-achtig (zie `prototype/styles.css:9`) |
+| `--pd-text`       | `--primary-text-color`         | `#f4f6f8`        | `#18231f`-achtig (`prototype/styles.css:7`)     |
+| `--pd-text-muted` | `--secondary-text-color`       | `#8a94a3`        | `#66736d`-achtig (`prototype/styles.css:8`)     |
+| `--pd-ok`         | `--success-color`              | `#7ee787`        | HA-standaard (thema-afhankelijk)                |
+| `--pd-info`       | `--info-color`                 | `#5cc8ff`        | HA-standaard                                    |
+| `--pd-warning`    | `--warning-color`              | `#ffd166`        | HA-standaard                                    |
+| `--pd-critical`   | `--error-color`                | `#ff6b6b`        | HA-standaard                                    |
+| `--pd-offline`    | `--disabled-text-color`        | `#6f7885`        | HA-standaard                                    |
 
 De donkere fallbackwaarden reproduceren de huidige "Juiced Horizon"-look voor wie geen HA-thema
 doorgeeft (bv. deze mock-up, of standalone review buiten HA). De lichte referentiewaarden komen
@@ -98,7 +101,7 @@ type: custom:pool-dashboard-card
 title: Zwembad
 
 # Verplicht voor de statussamenvatting (home-dashboard-compatibel, top-level):
-status: sensor.example_pool_status            # optioneel; afgeleid indien afwezig
+status: sensor.example_pool_status # optioneel; afgeleid indien afwezig
 water_temperature: sensor.example_pool_water_temperature
 target_temperature: input_number.example_pool_target_temperature
 ambient_temperature: sensor.example_pool_ambient_temperature
@@ -106,7 +109,11 @@ heater_power: input_boolean.example_pool_heater_power
 
 # Optioneel, voor foutdetectie in de statussamenvatting:
 has_error: binary_sensor.example_pool_heater_has_error
-salt_system_fault: sensor.example_pool_salt_system_power   # vermogensval = debietfout
+salt_system_fault: sensor.example_pool_salt_system_power # vermogensval = debietfout
+
+# Optioneel — "zwemmodus": schakelt filter + zoutsysteem tijdelijk uit (zie §7).
+# Top-level omdat de override filter én salt_system samen raakt, niet één domeingroep.
+swim_mode: input_boolean.example_pool_swim_mode
 
 filter:
   pump: switch.example_pool_filter_pump
@@ -128,6 +135,11 @@ salt_system:
   chlorination_level: number.example_pool_salt_chlorination_level
   boost: switch.example_pool_salt_boost
   boost_remaining: sensor.example_pool_salt_boost_remaining
+  fault_below_watts:
+    15 # optioneel; eenvoudige momentopname-drempel voor §8's
+    # debietfout-indicator. Puur informatief — de automatisering
+    # (met haar 10-minuten-vensterlogica) blijft de bron van waarheid;
+    # de kaart herimplementeert die vensterlogica niet.
 
 water_quality:
   ph: sensor.example_pool_ph
@@ -138,8 +150,15 @@ water_quality:
 
 # Optioneel — enkel actief als geconfigureerd (zie §5):
 mode:
-  select: input_select.example_pool_season_mode   # zomer/winter/onderhoud/handmatig
+  select: input_select.example_pool_season_mode # zomer/winter/onderhoud/handmatig
   apply_script: script.example_pool_apply_season_mode
+  impact: # auteurstijd-tekst per doelmodus, getoond vóór bevestiging.
+    # De kaart toont ENKEL wat hier staat — nooit een gesynthetiseerde
+    # samenvatting uit live state, want het script is wat echt handelt.
+    # Zonder tekst voor een modus: "geen samenvatting geconfigureerd".
+    zomer: "Filter, warmtepomp en zoutsysteem terug op automatisch schema."
+    winter: "Filter, zout en warmtepomp expliciet uit. Vorstbeveiliging blijft actief."
+    onderhoud: "Alles uit, geen automatische herstart."
 
 # Auteurstijd-configuratie, geen live HA-data (zie §6):
 automations:
@@ -149,11 +168,15 @@ automations:
   - entity: automation.example_pool_filter_stop
     group: filtering
     summary: "Stopt filter op eindtijd of bij bereikte doeluren"
+  - entity: automation.example_pool_pump_start_summer
+    group: filtering
+    summary: "PV-blinde start-zomer variant"
+    note: "dupliceert automation.example_pool_filter_start" # optioneel, auteurstijd, zie §6
   # ... (zie §6 voor volledige lijst/groepering)
 
-confirm_actions: true          # default aan, per instantie uitschakelbaar (wandpaneel)
-battery_warning: null          # n.v.t. voor pool, ter consistentie met garden-dashboard-schema
-theme_mode: system             # system (default, volgt HA-thema) | light | dark — zie §1a
+confirm_actions: true # default aan, per instantie uitschakelbaar (wandpaneel)
+battery_warning: null # n.v.t. voor pool, ter consistentie met garden-dashboard-schema
+theme_mode: system # system (default, volgt HA-thema) | light | dark — zie §1a
 ```
 
 **Watertemperatuur wordt bewust niet hardcoded.** `water_temperature` moet door de gebruiker
@@ -239,6 +262,7 @@ geplande uitvoering" of de exacte trigger-conditie live opvragen zonder de admin
 geen van de sibling-projecten heeft een automatisatie-overzicht.
 
 **Ontwerp:** de kaart toont per automatisering:
+
 - naam, groep (filtering/verwarming/waterkwaliteit/zout/veiligheid — uit `automations:`-config),
 - actief/inactief (live, uit `state`),
 - "laatst uitgevoerd" (live, uit `last_triggered`),
@@ -258,17 +282,17 @@ gebruiker zelf kan beslissen ze op te ruimen — **de kaart ruimt niets zelf op.
 
 ## 7. Snelle bediening — lijst en veiligheid
 
-| Control | Actie | Bescherming |
-|---|---|---|
-| Filterpomp aan/uit | `switch.turn_on/off` op `filter.pump` | Confirm (default aan) |
-| Warmtepomp aan/uit | `input_boolean.turn_on/off` op `heater_power` | Confirm **+ waarschuwing**: als `filter.pump` uit staat, toont de kaart "wordt automatisch teruggedraaid door *Zwembad Warmtepomp uitschakelen*" (zie Fase 1-conflict §4.4/§4.9) — géén stille override |
-| Doeltemperatuur aanpassen | `input_number.set_value` op `target_temperature` | Geen confirm (niet-destructief), debounce tijdens slepen (zoals garden-dashboard's `hasRelevantChange`) |
-| Zoutsysteem aan/uit | `switch.turn_on/off` op `salt_system.power` | Confirm |
-| Zout-boost | `switch.turn_on` op `salt_system.boost` | Confirm, toont resterende tijd live |
-| Zwemmodus | toggelt swim-mode helper | Geen confirm (bedoeld voor snel gebruik); kaart toont expliciet: "schakelt filter/zout nu uit, automatisch terug aan om 20:00 — een geplande start kan de pomp eerder al herstarten" (uit Fase 1-conflict §4.5) |
-| Filter-inhaalmodus | toggelt catchup-helper | Geen confirm |
-| Tijdelijke boost (filter) | n.v.t. — geen aparte boost-entity voor filter gevonden; **niet gebouwd**, gemeld als ontbrekend | — |
-| Terug naar automatisch schema | zet alle override-helpers (`zwemmodus`, `catchup_mode`, evt. `mode.select` → vorige modus) terug | Confirm |
+| Control                       | Actie                                                                                            | Bescherming                                                                                                                                                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Filterpomp aan/uit            | `switch.turn_on/off` op `filter.pump`                                                            | Confirm (default aan)                                                                                                                                                                                           |
+| Warmtepomp aan/uit            | `input_boolean.turn_on/off` op `heater_power`                                                    | Confirm **+ waarschuwing**: als `filter.pump` uit staat, toont de kaart "wordt automatisch teruggedraaid door _Zwembad Warmtepomp uitschakelen_" (zie Fase 1-conflict §4.4/§4.9) — géén stille override         |
+| Doeltemperatuur aanpassen     | `input_number.set_value` op `target_temperature`                                                 | Geen confirm (niet-destructief), debounce tijdens slepen (zoals garden-dashboard's `hasRelevantChange`)                                                                                                         |
+| Zoutsysteem aan/uit           | `switch.turn_on/off` op `salt_system.power`                                                      | Confirm                                                                                                                                                                                                         |
+| Zout-boost                    | `switch.turn_on` op `salt_system.boost`                                                          | Confirm, toont resterende tijd live                                                                                                                                                                             |
+| Zwemmodus                     | toggelt swim-mode helper                                                                         | Geen confirm (bedoeld voor snel gebruik); kaart toont expliciet: "schakelt filter/zout nu uit, automatisch terug aan om 20:00 — een geplande start kan de pomp eerder al herstarten" (uit Fase 1-conflict §4.5) |
+| Filter-inhaalmodus            | toggelt catchup-helper                                                                           | Geen confirm                                                                                                                                                                                                    |
+| Tijdelijke boost (filter)     | n.v.t. — geen aparte boost-entity voor filter gevonden; **niet gebouwd**, gemeld als ontbrekend  | —                                                                                                                                                                                                               |
+| Terug naar automatisch schema | zet alle override-helpers (`zwemmodus`, `catchup_mode`, evt. `mode.select` → vorige modus) terug | Confirm                                                                                                                                                                                                         |
 
 **Override-banner:** zodra `zwemmodus`, `catchup_mode` of `heater_power` afwijkt van wat de kaart
 als "automatisch" beschouwt, verschijnt een banner: wat er nu manueel is, wat dit tijdelijk
@@ -301,10 +325,10 @@ domein → geweigerd met duidelijke melding, nooit een gegokte call.
 
 ## 9. Benodigde backend-wijzigingen — samenvatting (alles ter goedkeuring, niets gebouwd)
 
-| Wijziging | Nodig voor | Repo/systeem |
-|---|---|---|
-| `input_select.pool_season_mode` + `script.pool_apply_season_mode` + conditie-aanpassing in 5 automatiseringen | Niet-cosmetische zomer/winter-modus (§5) | Home Assistant (na goedkeuring, niet in scope van dit repo) |
-| Geen wijziging nodig | Alle overige quick controls, status, historie, automatisatie-overzicht (read-only + bestaande entities) | — |
+| Wijziging                                                                                                     | Nodig voor                                                                                              | Repo/systeem                                                |
+| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `input_select.pool_season_mode` + `script.pool_apply_season_mode` + conditie-aanpassing in 5 automatiseringen | Niet-cosmetische zomer/winter-modus (§5)                                                                | Home Assistant (na goedkeuring, niet in scope van dit repo) |
+| Geen wijziging nodig                                                                                          | Alle overige quick controls, status, historie, automatisatie-overzicht (read-only + bestaande entities) | —                                                           |
 
 Alles behalve de modus-flow kan met de **bestaande** entiteiten en automatiseringen gebouwd
 worden — geen andere backend-wijziging is noodzakelijk voor de rest van dit ontwerp.
@@ -334,7 +358,7 @@ op de HA-host en het registreren als Lovelace-resource — beide zijn HA-schrijf
 
 ## 11. Implementatieplan per bestand
 
-```
+```text
 pool-dashboard.js                       # kaart + editor + registratie
 hacs.json                               # filename: pool-dashboard.js
 package.json                            # npm scripts: test/check:syntax/check:structure/lint/verify
@@ -364,7 +388,8 @@ test/
 
 ## 12. Mock-up
 
-Zie visuele render (mobiel + tablet/desktop-breedte, licht + donker): https://claude.ai/artifact/8CxWdYypQRBQXTLEx5cfsf
+Zie visuele render (mobiel + tablet/desktop-breedte, licht + donker):
+<https://claude.ai/artifact/8CxWdYypQRBQXTLEx5cfsf>
 
 Toont laag 1 (status), laag 2 (bediening + override-banner) en het ingeklapte laag 3/4/5-patroon,
 in zowel het donkere "Juiced Horizon"-thema (`#20242d`-kaarten, zoals gedocumenteerd in Fase 1
@@ -378,3 +403,13 @@ z'n "Donkere modus"/"Lichte modus"-knop) — die knop bestaat niet in de kaart z
 **Vraagt om uw goedkeuring** vóór verdere implementatie: het geheel van dit ontwerp (§1-4, §6-8,
 §10-11) kan gebouwd worden zonder Home Assistant te wijzigen. §5 (moduswissel-backend) vereist
 een apart akkoord omdat het automatiseringen raakt.
+
+---
+
+## 13. Fase 3 — schema-aanvullingen tijdens implementatie
+
+Bij het bouwen bleek §7's bedieningstabel drie sleutels te gebruiken die in §2's schema nog
+ontbraken. Toegevoegd (zie §2, bijgewerkt): top-level `swim_mode`, `salt_system.fault_below_watts`,
+`mode.impact` en, voor §6's "dupliceert [andere automatisering]"-markering, een optioneel
+`note`-veld per `automations[]`-item. Geen van deze wijzigt de scope of vereist HA-wijzigingen —
+het zijn ontbrekende config-sleutels voor bediening/weergave die al in §6/§7 beschreven stonden.
