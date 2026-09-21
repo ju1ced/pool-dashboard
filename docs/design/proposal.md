@@ -32,6 +32,7 @@ pool-dashboard.js
 │   ├── actionServiceFor()     → domein-veilige service-lookup (zoals garden-dashboard)
 │   ├── shouldConfirm()
 │   ├── modeImpactSummary()    → tekstuele preview vóór moduswissel
+│   ├── resolveThemeMode()     → theme_mode-config → wel/niet overschrijven van HA-thema-vars (§1a)
 │   └── collectEntityIds() / hasRelevantChange()
 ├── PoolDashboardCard (custom element)
 │   ├── setConfig / set hass / getCardSize / getGridOptions
@@ -40,6 +41,48 @@ pool-dashboard.js
 ├── PoolDashboardCardEditor (minimale visuele editor)
 └── Registratie (guarded define + window.customCards)
 ```
+
+---
+
+## 1a. Theming: licht/donker volgt het HA-thema, geen eigen toggle in de kaart
+
+**Correctie op eerdere versie van dit voorstel:** de mock-up toonde enkel een vast donker thema
+("Juiced Horizon", hardcoded `--jh-*`-kleuren). Dat is verkeerd — net zoals `garden-dashboard`
+en `home-dashboard` moet de kaart het **actieve HA-thema** volgen (licht of donker, naargelang
+wat de gebruiker/het wandpaneel in HA heeft ingesteld), zonder een eigen zon/maan-knop in de
+kaart. Zo'n knop zou tegen HA's eigen thema-instelling ingaan.
+
+**Mechanisme (zoals `garden-dashboard`, `garden-dashboard.js` §`_styles()`):** de kaart leest
+HA's native CSS custom properties met een donkere fallback voor standalone-preview buiten HA.
+HA vult deze properties zelf in op basis van het actieve thema — licht of donker — dus de kaart
+zelf bevat geen licht/donker-logica.
+
+| Kaarttoken | HA-bron | Donkere fallback | Lichte fallback (referentie) |
+|---|---|---|---|
+| `--pd-bg` | `--card-background-color` | `#20242d` | `#ffffff` |
+| `--pd-bg-raised` | `--secondary-background-color` | `#2b303a` | `#f7f9fa` |
+| `--pd-border` | `--divider-color` | `#343a46` | `#d8e1dc`-achtig (zie `prototype/styles.css:9`) |
+| `--pd-text` | `--primary-text-color` | `#f4f6f8` | `#18231f`-achtig (`prototype/styles.css:7`) |
+| `--pd-text-muted` | `--secondary-text-color` | `#8a94a3` | `#66736d`-achtig (`prototype/styles.css:8`) |
+| `--pd-ok` | `--success-color` | `#7ee787` | HA-standaard (thema-afhankelijk) |
+| `--pd-info` | `--info-color` | `#5cc8ff` | HA-standaard |
+| `--pd-warning` | `--warning-color` | `#ffd166` | HA-standaard |
+| `--pd-critical` | `--error-color` | `#ff6b6b` | HA-standaard |
+| `--pd-offline` | `--disabled-text-color` | `#6f7885` | HA-standaard |
+
+De donkere fallbackwaarden reproduceren de huidige "Juiced Horizon"-look voor wie geen HA-thema
+doorgeeft (bv. deze mock-up, of standalone review buiten HA). De lichte referentiewaarden komen
+uit reeds gevalideerde tokens in `home-dashboard/prototype/styles.css:3-20` (niet opnieuw
+uitgevonden) — puur ter illustratie in de mock-up, want in een echte HA-omgeving levert HA zelf
+de effectieve licht/donker-waarden via bovenstaande CSS-variabelen.
+
+**Optionele override — `theme_mode`:** voor het uitzonderingsgeval waarbij een specifiek
+wandpaneel altijd hetzelfde thema moet tonen ongeacht de globale HA-instelling (zie §2), kan
+`theme_mode: light` of `theme_mode: dark` in de kaartconfig de HA-variabelen overschrijven met
+letterlijke waarden — zelfde patroon als home-dashboard's `ThemeMode` (`"system" | "light" |
+"dark"`, default `"system"`) in `home-dashboard/src/theme/palettes.ts:3,36-72`, maar zonder
+paletkeuze (dat is hier niet gevraagd). Bij `"system"` (default) zet de kaart geen enkele van
+bovenstaande variabelen zelf — ze blijven volledig aan HA overgelaten.
 
 ---
 
@@ -110,6 +153,7 @@ automations:
 
 confirm_actions: true          # default aan, per instantie uitschakelbaar (wandpaneel)
 battery_warning: null          # n.v.t. voor pool, ter consistentie met garden-dashboard-schema
+theme_mode: system             # system (default, volgt HA-thema) | light | dark — zie §1a
 ```
 
 **Watertemperatuur wordt bewust niet hardcoded.** `water_temperature` moet door de gebruiker
@@ -274,13 +318,15 @@ op de HA-host en het registreren als Lovelace-resource — beide zijn HA-schrijf
 `/projects/pool`. Daarom, naar het precedent van `garden-dashboard`:
 
 - **Automatisch:** `node --test` op de pure helpers (`deriveStatus`, `actionServiceFor`,
-  `shouldConfirm`, `modeImpactSummary`, …), `node --check` syntax, structuurcontrole
-  (`scripts/check_required_structure.js`), markdownlint/prettier — allemaal lokaal, geen HA nodig.
+  `shouldConfirm`, `modeImpactSummary`, `resolveThemeMode`, …), `node --check` syntax,
+  structuurcontrole (`scripts/check_required_structure.js`), markdownlint/prettier — allemaal
+  lokaal, geen HA nodig.
 - **Handmatig:** `docs/home-assistant-testing.md` — een stap-voor-stap checklist die u zelf
   uitvoert (of waarvoor u mij vraagt de kaart-YAML te leveren) na het handmatig toevoegen van de
   resource aan `dashboard-test`. Dekt: normale staten, `unavailable`/`unknown` per veld,
   confirm-dialogen, override-banner, modus-blok uit/aan naargelang config, responsive op
-  ~360px/tablet/desktop.
+  ~360px/tablet/desktop, **en de kaart in zowel HA's lichte als donkere thema** (thema wisselen
+  via HA's eigen profielinstelling, niet via de kaart) plus `theme_mode: light`/`dark`-override.
 - Ik lever een **paste-klare YAML-snippet** (fictieve ID's) die u zelf naar uw echte entity-ID's
   kunt mappen en in `dashboard-test` plakt.
 
@@ -307,7 +353,8 @@ scripts/
   check_required_structure.js
 test/
   helpers.test.js                       # deriveStatus, actionServiceFor, shouldConfirm,
-                                         # modeImpactSummary, collectEntityIds, hasRelevantChange
+                                         # modeImpactSummary, resolveThemeMode, collectEntityIds,
+                                         # hasRelevantChange
 .github/workflows/ci.yaml               # syntax + structure + markdownlint + prettier + tests
 .markdownlint-cli2.yaml / .prettierignore
 .gitignore                              # al aangemaakt (*.local.*)
@@ -317,12 +364,14 @@ test/
 
 ## 12. Mock-up
 
-Zie visuele render (mobiel + tablet/desktop-breedte): https://claude.ai/artifact/8CxWdYypQRBQXTLEx5cfsf
+Zie visuele render (mobiel + tablet/desktop-breedte, licht + donker): https://claude.ai/artifact/8CxWdYypQRBQXTLEx5cfsf
 
-Toont laag 1
-(status), laag 2 (bediening + override-banner) en het ingeklapte laag 3/4/5-patroon, in de
-Juiced Horizon-kleurtaal (dark panels, `#20242d`-kaarten, statuskleuren
-ok/info/warning/critical/offline) zoals gedocumenteerd in Fase 1 §3.3.
+Toont laag 1 (status), laag 2 (bediening + override-banner) en het ingeklapte laag 3/4/5-patroon,
+in zowel het donkere "Juiced Horizon"-thema (`#20242d`-kaarten, zoals gedocumenteerd in Fase 1
+§3.3) als een licht thema — zie §1a voor het licht/donker-mechanisme (HA-thema-variabelen, geen
+eigen toggle in de kaart zelf). De mock-up bevat, puur als **demo-affordance** om beide te tonen,
+een licht/donker-knop op paginaniveau (zelfde patroon als `home-dashboard/prototype/app.js:256-282`
+z'n "Donkere modus"/"Lichte modus"-knop) — die knop bestaat niet in de kaart zelf.
 
 ---
 
