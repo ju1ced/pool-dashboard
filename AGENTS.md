@@ -62,3 +62,5 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
 
 - Fase 2: design proposal + mock-up (approved).
 - Fase 3: card, minimal editor, tests, HACS files, docs, CI.
+- Fase 3.1: status chips → illustrated pool visual (layer 1 restyle only, no
+  logic/entity-contract change).
