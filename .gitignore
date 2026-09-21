@@ -1,0 +1,6 @@
+# Alles met echte lokale gegevens (entity-ID's, mappings, notities) blijft lokaal.
+# Zelfde conventie als garden-dashboard / juiced-dashboard / ha-kia-connect-dashboard.
+*.local.*
+*.local/
+build/
+node_modules/
