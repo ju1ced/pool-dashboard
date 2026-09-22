@@ -83,7 +83,8 @@ The mode block is **disabled and shows an explanation** unless both
 `mode.select` and `mode.apply_script` are configured — this backend
 (`input_select.pool_season_mode` + `script.pool_apply_season_mode` +
 condition edits in 5 automations) is not part of this repository and needs a
-separate approval; see `docs/design/proposal.md` §5/§9.
+separate approval; see `docs/design/proposal.md` §5/§9 and the full technical
+spec in `docs/design/season-mode-backend.md`.
 
 When configured, clicking a mode button shows a confirmation dialog with the
 matching `mode.impact.<value>` text (verbatim, never synthesized — if a

@@ -127,6 +127,7 @@ See **[docs/configuration.md](docs/configuration.md)** for every option, and
 - [Troubleshooting](docs/troubleshooting.md)
 - [Architecture](ARCHITECTURE.md)
 - [Design proposal (Fase 2)](docs/design/proposal.md)
+- [Season-mode backend — technical proposal, not built](docs/design/season-mode-backend.md)
 
 ## Development
 
