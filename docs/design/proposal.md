@@ -249,6 +249,9 @@ verboden in de opdracht.
    wat buiten de scope-afspraak "enkel `/projects/pool`" valt. De kaart wordt wél al voorbereid
    om `mode.apply_script` te kunnen aanroepen zodra dat script bestaat.
 
+**Uitgewerkt technisch voorstel** (exacte helper-/script-YAML en het conditie-editpatroon per
+automatisering, klaar voor uw goedkeuring): zie `docs/design/season-mode-backend.md`.
+
 ---
 
 ## 6. Automatisatie-overzicht — wat een Lovelace-kaart wél en niet kan tonen

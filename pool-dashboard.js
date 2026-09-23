@@ -703,7 +703,7 @@ class PoolDashboardCard extends CardBase {
           <h2>🏊 ${escapeHtml(this._config.title || "Zwembad")}</h2>
         </div>
         ${this._renderStatusBanner(status)}
-        ${this._renderChips()}
+        ${this._renderPoolIllustration()}
         ${overrides.map((o) => this._renderOverrideBanner(o)).join("")}
         ${this._renderControls()}
         ${this._renderModeGroup()}
@@ -770,7 +770,7 @@ class PoolDashboardCard extends CardBase {
       </div>`;
   }
 
-  _renderChips() {
+  _renderPoolIllustration() {
     const water = this._measure(this._config.water_temperature);
     const ambient = this._measure(this._config.ambient_temperature);
     const ph = this._measure(this._config.water_quality?.ph);
@@ -792,19 +792,41 @@ class PoolDashboardCard extends CardBase {
       return entityId && isUnavailable(this._obj(entityId)?.state);
     }).length;
 
-    const chip = (dotClass, entityId, label, m) => `
+    const badge = (dotClass, entityId, label, m) => `
       <span class="chip" ${entityId ? `data-info="${escapeHtml(entityId)}"` : ""}>
         <span class="dot ${dotClass}"></span>${escapeHtml(label)} <b>${escapeHtml(m.value)}${m.unit ? ` ${escapeHtml(m.unit)}` : ""}</b>
       </span>`;
 
     return `
-      <div class="chips">
-        ${chip(water.available ? "info" : "offline", this._config.water_temperature, "Water", water)}
-        ${chip(ambient.available ? "muted" : "offline", this._config.ambient_temperature, "Buiten", ambient)}
-        ${this._config.water_quality?.ph ? chip(ph.available ? "ok" : "offline", this._config.water_quality.ph, "pH", ph) : ""}
-        ${this._config.water_quality?.orp ? chip(orp.available ? "ok" : "offline", this._config.water_quality.orp, "ORP", orp) : ""}
-        ${this._config.water_quality?.salinity ? chip(salinity.available ? "ok" : "offline", this._config.water_quality.salinity, "Zout", salinity) : ""}
-        ${noticeCount > 0 ? `<span class="chip"><span class="dot warning"></span>${noticeCount} melding${noticeCount > 1 ? "en" : ""}</span>` : ""}
+      <div class="pool-illustration">
+        <svg viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="pi-water-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--pd-info)" stop-opacity="0.55"></stop>
+              <stop offset="100%" stop-color="var(--pd-info)" stop-opacity="0.16"></stop>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="600" height="220" rx="22" class="pi-deck"></rect>
+          <rect x="12" y="12" width="576" height="196" rx="15" class="pi-water" fill="url(#pi-water-grad)"></rect>
+          <path class="pi-wave" d="M12,70 Q 56,56 100,70 T 188,70 T 276,70 T 364,70 T 452,70 T 540,70 T 588,70"></path>
+          <path class="pi-wave pi-wave-2" d="M12,126 Q 56,112 100,126 T 188,126 T 276,126 T 364,126 T 452,126 T 540,126 T 588,126"></path>
+          <path class="pi-wave pi-wave-3" d="M12,174 Q 56,162 100,174 T 188,174 T 276,174 T 364,174 T 452,174 T 540,174 T 588,174"></path>
+        </svg>
+        <div class="pi-overlay">
+          <div class="pi-top-row">
+            ${badge(ambient.available ? "muted" : "offline", this._config.ambient_temperature, "Buiten", ambient)}
+            ${noticeCount > 0 ? `<span class="chip pi-alert"><span class="dot warning"></span>${noticeCount} melding${noticeCount > 1 ? "en" : ""}</span>` : ""}
+          </div>
+          <div class="pi-center" ${this._config.water_temperature ? `data-info="${escapeHtml(this._config.water_temperature)}"` : ""}>
+            <span class="pi-water-value ${water.available ? "" : "offline"}"><b>${escapeHtml(water.value)}</b>${water.available && water.unit ? `<small>${escapeHtml(water.unit)}</small>` : ""}</span>
+            <span class="pi-water-label">Watertemperatuur</span>
+          </div>
+          <div class="pi-bottom-row">
+            ${this._config.water_quality?.ph ? badge(ph.available ? "ok" : "offline", this._config.water_quality.ph, "pH", ph) : ""}
+            ${this._config.water_quality?.orp ? badge(orp.available ? "ok" : "offline", this._config.water_quality.orp, "ORP", orp) : ""}
+            ${this._config.water_quality?.salinity ? badge(salinity.available ? "ok" : "offline", this._config.water_quality.salinity, "Zout", salinity) : ""}
+          </div>
+        </div>
       </div>`;
   }
 
@@ -1030,14 +1052,33 @@ class PoolDashboardCard extends CardBase {
       .status-banner .t b { display:block; font-size:13.5px; font-weight:700; }
       .status-banner .t span { display:block; font-size:11.5px; color:var(--pd-text-muted); margin-top:1px; }
 
-      .chips { display:flex; flex-wrap:wrap; gap:7px; }
       .chip { display:inline-flex; align-items:center; gap:6px; background:var(--pd-bg-raised); border:1px solid var(--pd-border);
         border-radius:99px; padding:6px 11px 6px 8px; font-size:12px; color:var(--pd-text-muted); font-variant-numeric:tabular-nums; cursor:pointer; }
       .chip .dot { width:7px; height:7px; border-radius:50%; flex:none; background:var(--pd-text-muted); }
-      .chip .dot.ok { background:var(--pd-ok); } .chip .dot.info { background:var(--pd-info); }
+      .chip .dot.ok { background:var(--pd-ok); }
       .chip .dot.warning { background:var(--pd-warning); } .chip .dot.offline { background:var(--pd-offline); }
       .chip .dot.muted { background:var(--pd-text-muted); }
       .chip b { color:var(--pd-text); font-weight:700; font-size:12.5px; }
+
+      .pool-illustration { position:relative; border-radius:18px; overflow:hidden; min-height:168px; background:var(--pd-bg-raised); }
+      .pool-illustration svg { position:absolute; inset:0; width:100%; height:100%; display:block; }
+      .pi-deck { fill:var(--pd-bg-raised); }
+      .pi-water { stroke:var(--pd-border); stroke-width:1; }
+      .pi-wave { fill:none; stroke:var(--pd-info); stroke-opacity:.4; stroke-width:3; stroke-linecap:round; }
+      .pi-wave-2 { stroke-opacity:.25; }
+      .pi-wave-3 { stroke-opacity:.14; }
+      .pi-overlay { position:relative; z-index:1; display:flex; flex-direction:column; justify-content:space-between;
+        min-height:168px; padding:12px 14px 14px; gap:8px; }
+      .pi-top-row { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+      .pi-alert { background:color-mix(in srgb, var(--pd-warning) 18%, var(--pd-bg-raised)); color:var(--pd-warning);
+        border-color:color-mix(in srgb, var(--pd-warning) 42%, transparent); }
+      .pi-center { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; text-align:center; cursor:pointer; }
+      .pi-water-value { display:inline-flex; align-items:baseline; gap:2px; font-size:34px; font-weight:800; color:var(--pd-text);
+        font-variant-numeric:tabular-nums; text-shadow:0 1px 3px color-mix(in srgb, var(--pd-bg) 55%, transparent); }
+      .pi-water-value small { font-size:15px; font-weight:700; }
+      .pi-water-value.offline { font-size:16px; font-weight:600; color:var(--pd-offline); }
+      .pi-water-label { font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--pd-text-muted); margin-top:2px; }
+      .pi-bottom-row { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
 
       .override-banner { display:flex; align-items:flex-start; gap:9px; background:color-mix(in srgb, var(--pd-warning) 14%, transparent);
         border:1px solid color-mix(in srgb, var(--pd-warning) 36%, transparent); border-radius:12px; padding:10px 11px; font-size:12px; color:var(--pd-text-muted); }
