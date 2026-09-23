@@ -78,3 +78,8 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   never picked up); this replaces it. Debietfout check factored into shared
   `saltSystemFault` helper so the status banner and the illustration can't
   disagree.
+- Fase 3.2 hotfix (v0.3.1): `.pi-scene`'s only children are
+  `position:absolute`, so nothing in normal flow gave it a height — it
+  depended entirely on the CSS `aspect-ratio` property, which shipped
+  broken (collapsed to 0 height, illustration invisible) in v0.3.0. Fixed
+  with the older, universally-supported padding-bottom-% technique instead.

@@ -1324,7 +1324,14 @@ class PoolDashboardCard extends CardBase {
       .chip b { color:var(--pd-text); font-weight:700; font-size:12.5px; }
 
       .pool-illustration { max-width:900px; margin:0 auto; }
-      .pi-scene { position:relative; width:100%; aspect-ratio:1040/680; border-radius:18px; overflow:hidden; background:var(--pd-illus-yard); }
+      /* Both children of .pi-scene (svg, .pi-overlay) are position:absolute,
+         so nothing in normal flow gives this box a height — it depends
+         entirely on this ratio. padding-bottom-% is used instead of the
+         aspect-ratio property: it's the older, universally-supported way
+         to force it, since some HA companion/webview environments don't
+         reliably size an all-absolutely-positioned box from aspect-ratio
+         alone (this shipped broken as a collapsed 0-height box in v0.3.0). */
+      .pi-scene { position:relative; width:100%; height:0; padding-bottom:65.3846%; border-radius:18px; overflow:hidden; background:var(--pd-illus-yard); }
       .pi-scene svg { position:absolute; inset:0; width:100%; height:100%; display:block; }
       .pi-overlay { position:absolute; inset:0; }
 
