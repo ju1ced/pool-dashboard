@@ -788,9 +788,13 @@ class PoolDashboardCard extends CardBase {
           <h2>🏊 ${escapeHtml(this._config.title || "Zwembad")}</h2>
         </div>
         ${this._renderStatusBanner(status)}
-        ${this._renderPoolIllustration()}
         ${overrides.map((o) => this._renderOverrideBanner(o)).join("")}
-        ${this._renderControls()}
+        <div class="pool-hero-row">
+          ${this._renderPoolIllustration()}
+          <div class="pool-quick-col">
+            ${this._renderControls()}
+          </div>
+        </div>
         ${this._renderModeGroup()}
         ${this._renderAutomationsGroup()}
         ${this._renderHistoryGroup()}
@@ -1148,7 +1152,7 @@ class PoolDashboardCard extends CardBase {
         : "";
 
     return `
-      <div class="section-label">Snelle bediening</div>
+      <div class="section-label" style="margin-bottom:6px;">Snelle bediening</div>
       <div class="controls">
         ${toggleCtrl(pumpEntity, "💧", "Filterpomp", pumpOn, `${hoursToday.value}${hoursToday.unit ? ` ${escapeHtml(hoursToday.unit)}` : ""} / ${hoursTarget.value}${hoursTarget.unit ? ` ${escapeHtml(hoursTarget.unit)}` : ""} vandaag`)}
         ${toggleCtrl(heaterEntity, "🔥", "Warmtepomp", heaterOn, heaterWarning)}
@@ -1323,17 +1327,22 @@ class PoolDashboardCard extends CardBase {
       .chip .dot.muted { background:var(--pd-text-muted); }
       .chip b { color:var(--pd-text); font-weight:700; font-size:12.5px; }
 
-      /* Explicit width:100% is load-bearing, not decorative. ha-card is a
-         flex column (see below); margin:0 auto sets auto cross-axis
-         margins, which switches off align-items:stretch for this item, so
-         without an explicit width it shrinks to its max-content size. Every
-         descendant of .pi-scene is position:absolute (they contribute no
-         intrinsic width), so that max-content size is 0 — collapsing the
-         whole illustration to a 0×0 box. Shipped broken this way in v0.3.0
-         and v0.3.1 (the v0.3.1 fix targeted height via padding-bottom-%,
-         which cannot help when the width feeding that percentage is
-         already 0). */
-      .pool-illustration { width:100%; max-width:900px; margin:0 auto; }
+      /* .pool-illustration/.pool-quick-col live in .pool-hero-row's CSS Grid
+         (see below), not a flex row — deliberately, after v0.3.0/v0.3.1
+         shipped this box collapsed to 0×0 from a flex shrink-to-fit +
+         auto-margin interaction (see AGENTS.md changelog). Grid's 1fr
+         tracks size from the row's own definite width, not from a child's
+         intrinsic content, so they can't repeat that failure mode even
+         though every descendant here is still position:absolute/percentage
+         width and so still has no intrinsic size of its own. min-width:0
+         overrides the grid item's default auto min-size regardless. */
+      .pool-hero-row { display:grid; grid-template-columns:1fr 1fr; align-items:start; gap:16px; }
+      .pool-hero-row .pool-illustration, .pool-hero-row .pool-quick-col { min-width:0; }
+      .pool-quick-col { display:flex; flex-direction:column; gap:10px; }
+      @media (max-width:640px) {
+        .pool-hero-row { grid-template-columns:1fr; }
+      }
+      .pool-illustration { width:100%; }
       .pi-scene { position:relative; width:100%; height:0; padding-bottom:65.3846%; border-radius:18px; overflow:hidden; background:var(--pd-illus-yard); }
       .pi-scene svg { position:absolute; inset:0; width:100%; height:100%; display:block; }
       .pi-overlay { position:absolute; inset:0; }
