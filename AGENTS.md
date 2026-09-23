@@ -78,8 +78,15 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   never picked up); this replaces it. Debietfout check factored into shared
   `saltSystemFault` helper so the status banner and the illustration can't
   disagree.
-- Fase 3.2 hotfix (v0.3.1): `.pi-scene`'s only children are
-  `position:absolute`, so nothing in normal flow gave it a height — it
-  depended entirely on the CSS `aspect-ratio` property, which shipped
-  broken (collapsed to 0 height, illustration invisible) in v0.3.0. Fixed
-  with the older, universally-supported padding-bottom-% technique instead.
+- Fase 3.2 hotfix (v0.3.1, incomplete): swapped `.pi-scene`'s CSS
+  `aspect-ratio` for a padding-bottom-% height technique. This did not
+  actually fix the illustration — see v0.3.2 below for the real cause.
+- Fase 3.2 hotfix (v0.3.2, real fix): the actual cause of the invisible
+  illustration in v0.3.0/v0.3.1 was width, not height.
+  `ha-card.pool-shell` is `display:flex; flex-direction:column`, and
+  `.pool-illustration` had `margin:0 auto` with no explicit `width` — auto
+  cross-axis margins switch off `align-items:stretch`, so the item shrank
+  to its max-content width. Every descendant of `.pi-scene` is
+  `position:absolute` (no intrinsic width), so max-content resolved to 0,
+  collapsing the whole box to 0×0 regardless of the height technique used.
+  Fixed by adding an explicit `width:100%` on `.pool-illustration`.

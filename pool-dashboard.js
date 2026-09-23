@@ -1323,14 +1323,17 @@ class PoolDashboardCard extends CardBase {
       .chip .dot.muted { background:var(--pd-text-muted); }
       .chip b { color:var(--pd-text); font-weight:700; font-size:12.5px; }
 
-      .pool-illustration { max-width:900px; margin:0 auto; }
-      /* Both children of .pi-scene (svg, .pi-overlay) are position:absolute,
-         so nothing in normal flow gives this box a height — it depends
-         entirely on this ratio. padding-bottom-% is used instead of the
-         aspect-ratio property: it's the older, universally-supported way
-         to force it, since some HA companion/webview environments don't
-         reliably size an all-absolutely-positioned box from aspect-ratio
-         alone (this shipped broken as a collapsed 0-height box in v0.3.0). */
+      /* Explicit width:100% is load-bearing, not decorative. ha-card is a
+         flex column (see below); margin:0 auto sets auto cross-axis
+         margins, which switches off align-items:stretch for this item, so
+         without an explicit width it shrinks to its max-content size. Every
+         descendant of .pi-scene is position:absolute (they contribute no
+         intrinsic width), so that max-content size is 0 — collapsing the
+         whole illustration to a 0×0 box. Shipped broken this way in v0.3.0
+         and v0.3.1 (the v0.3.1 fix targeted height via padding-bottom-%,
+         which cannot help when the width feeding that percentage is
+         already 0). */
+      .pool-illustration { width:100%; max-width:900px; margin:0 auto; }
       .pi-scene { position:relative; width:100%; height:0; padding-bottom:65.3846%; border-radius:18px; overflow:hidden; background:var(--pd-illus-yard); }
       .pi-scene svg { position:absolute; inset:0; width:100%; height:100%; display:block; }
       .pi-overlay { position:absolute; inset:0; }
