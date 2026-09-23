@@ -15,7 +15,7 @@ temperature.
 | `status`              | entity  | no       | Optional status sensor. Currently used only as an extra required-field check for the "unavailable" state — the card always derives its own status label. |
 | `water_temperature`   | entity  | yes      | Pool water temperature. **Map this to the same sensor your heater automations use.**                                                                     |
 | `target_temperature`  | entity  | yes      | Target temperature, `number.*` or `input_number.*` so the stepper can write it.                                                                          |
-| `ambient_temperature` | entity  | yes      | Outside/air temperature, shown as an informational chip.                                                                                                 |
+| `ambient_temperature` | entity  | yes      | Outside/air temperature, shown as an informational badge on the pool illustration.                                                                       |
 | `heater_power`        | entity  | yes      | Heat pump on/off, `switch.*` or `input_boolean.*`.                                                                                                       |
 | `has_error`           | entity  | no       | Heat pump fault flag (`binary_sensor.*`). `on` → critical status.                                                                                        |
 | `salt_system_fault`   | entity  | no       | Salt system power-draw sensor, used with `salt_system.fault_below_watts` for a simple flow-fault indicator (see below).                                  |
@@ -62,7 +62,8 @@ installs (see `docs/troubleshooting.md`).
 
 ## `water_quality`
 
-All optional, shown as chips (layer 1) and setpoints (layer 5, settings):
+All optional, shown as badges on the pool illustration (layer 1) and setpoints
+(layer 5, settings):
 `ph`, `ph_setpoint`, `orp`, `orp_setpoint`, `salinity`. `ph_setpoint` and
 `orp_setpoint` must be `number.*` to be settable in a future revision — today
 they are display-only in **Instellingen**.

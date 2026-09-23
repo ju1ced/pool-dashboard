@@ -814,7 +814,7 @@ class PoolDashboardCard extends CardBase {
         </svg>
         <div class="pi-overlay">
           <div class="pi-top-row">
-            ${this._config.ambient_temperature ? badge(ambient.available ? "muted" : "offline", this._config.ambient_temperature, "Buiten", ambient) : ""}
+            ${badge(ambient.available ? "muted" : "offline", this._config.ambient_temperature, "Buiten", ambient)}
             ${noticeCount > 0 ? `<span class="chip pi-alert"><span class="dot warning"></span>${noticeCount} melding${noticeCount > 1 ? "en" : ""}</span>` : ""}
           </div>
           <div class="pi-center" ${this._config.water_temperature ? `data-info="${escapeHtml(this._config.water_temperature)}"` : ""}>
@@ -1055,7 +1055,7 @@ class PoolDashboardCard extends CardBase {
       .chip { display:inline-flex; align-items:center; gap:6px; background:var(--pd-bg-raised); border:1px solid var(--pd-border);
         border-radius:99px; padding:6px 11px 6px 8px; font-size:12px; color:var(--pd-text-muted); font-variant-numeric:tabular-nums; cursor:pointer; }
       .chip .dot { width:7px; height:7px; border-radius:50%; flex:none; background:var(--pd-text-muted); }
-      .chip .dot.ok { background:var(--pd-ok); } .chip .dot.info { background:var(--pd-info); }
+      .chip .dot.ok { background:var(--pd-ok); }
       .chip .dot.warning { background:var(--pd-warning); } .chip .dot.offline { background:var(--pd-offline); }
       .chip .dot.muted { background:var(--pd-text-muted); }
       .chip b { color:var(--pd-text); font-weight:700; font-size:12.5px; }
