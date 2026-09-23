@@ -1,6 +1,6 @@
 {
   "name": "pool-dashboard",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "description": "Home Assistant Lovelace custom card for a swimming pool: status, quick controls, season/automation overview, history and advanced settings.",
   "type": "commonjs",
