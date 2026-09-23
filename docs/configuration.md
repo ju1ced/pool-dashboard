@@ -84,6 +84,10 @@ mode:
     zomer: "Filter, warmtepomp en zoutsysteem terug op automatisch schema."
     winter: "Filter, zout en warmtepomp expliciet uit. Vorstbeveiliging blijft actief."
     onderhoud: "Alles uit, geen automatische herstart."
+  automations:
+    zomer:
+      [automation.example_pool_filter_start, automation.example_pool_heater_on]
+    winter: [automation.example_pool_frost_protection]
 ```
 
 The mode block is **disabled and shows an explanation** unless both
@@ -101,6 +105,12 @@ target mode has no `impact` entry the dialog says so explicitly), then calls
 `input_select.select_option` directly and never creates or edits an
 automation.
 
+`mode.automations` is optional: a map from a mode value to the list of
+`automation.*` entities that mode affects. When the active mode has a
+matching entry, the mode group lists those automations' live on/off state
+underneath the buttons — the same read-only row style as the `automations`
+overview below, just scoped to the current mode instead of all of them.
+
 ## `automations` — read-only overview
 
 ```yaml
@@ -117,7 +127,7 @@ automations:
 | Field     | Required | Description                                                                                                                                                                                                                                                              |
 | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `entity`  | yes      | The `automation.*` entity. Live `state` and `last_triggered` are read.                                                                                                                                                                                                   |
-| `group`   | no       | Free-text grouping label (not currently rendered as a heading, reserved for a future grouped layout).                                                                                                                                                                    |
+| `group`   | no       | Free-text grouping label. Automations sharing a `group` value render together under that heading, in first-seen order; automations without one render flat, as before this existed.                                                                                      |
 | `summary` | no       | Author-time one-line description of what the automation does and when.                                                                                                                                                                                                   |
 | `note`    | no       | Author-time flag (e.g. "dupliceert …") — shown as a small "controleren" badge instead of the last-triggered time. The card never decides this itself; see `docs/design/proposal.md` §6 for why a Lovelace card cannot introspect an automation's real trigger/condition. |
 
