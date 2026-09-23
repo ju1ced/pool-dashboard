@@ -90,3 +90,11 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   `position:absolute` (no intrinsic width), so max-content resolved to 0,
   collapsing the whole box to 0×0 regardless of the height technique used.
   Fixed by adding an explicit `width:100%` on `.pool-illustration`.
+- Fase 3.2 layout (v0.3.3): illustration and "Snelle bediening" placed
+  side by side (`.pool-hero-row`, a two-column CSS Grid, not flex — after
+  the v0.3.0/v0.3.1 collapse, grid's `1fr` tracks were deliberately chosen
+  since they size from the row's own definite width rather than a child's
+  intrinsic content). Collapses to a single column under 640px. Override
+  banners moved to render right after the status banner (previously
+  between the illustration and the controls, which no longer works once
+  those two share a row).
