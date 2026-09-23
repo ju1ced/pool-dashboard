@@ -68,3 +68,13 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   condition-edit pattern for the season-mode backend, in
   `docs/design/season-mode-backend.md` — documentation only, awaiting
   separate approval; nothing built in Home Assistant.
+- Fase 3.2: pool illustration replaced with the full equipment scene from
+  the approved design mockup (wood-deck pool + illustrated filter pump, salt
+  system and heat pump, generic default labels with optional per-group
+  `label` override, "Verbruik" power badges via new `filter.power_draw` /
+  `heater.power_draw`, salt system verbruik reusing `salt_system_fault`).
+  The v0.2.1 illustration shipped in Fase 3.1 diverged from the mockup that
+  was actually approved (a later design-artifact iteration the shipped card
+  never picked up); this replaces it. Debietfout check factored into shared
+  `saltSystemFault` helper so the status banner and the illustration can't
+  disagree.

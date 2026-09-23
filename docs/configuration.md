@@ -8,53 +8,59 @@ temperature.
 
 ## Top-level fields
 
-| Field                 | Type    | Required | Description                                                                                                                                              |
-| --------------------- | ------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `type`                | string  | yes      | Must be `custom:pool-dashboard-card`.                                                                                                                    |
-| `title`               | string  | no       | Card heading (default `Zwembad`).                                                                                                                        |
-| `status`              | entity  | no       | Optional status sensor. Currently used only as an extra required-field check for the "unavailable" state — the card always derives its own status label. |
-| `water_temperature`   | entity  | yes      | Pool water temperature. **Map this to the same sensor your heater automations use.**                                                                     |
-| `target_temperature`  | entity  | yes      | Target temperature, `number.*` or `input_number.*` so the stepper can write it.                                                                          |
-| `ambient_temperature` | entity  | yes      | Outside/air temperature, shown as an informational badge on the pool illustration.                                                                       |
-| `heater_power`        | entity  | yes      | Heat pump on/off, `switch.*` or `input_boolean.*`.                                                                                                       |
-| `has_error`           | entity  | no       | Heat pump fault flag (`binary_sensor.*`). `on` → critical status.                                                                                        |
-| `salt_system_fault`   | entity  | no       | Salt system power-draw sensor, used with `salt_system.fault_below_watts` for a simple flow-fault indicator (see below).                                  |
-| `swim_mode`           | entity  | no       | Swim-mode helper (`input_boolean.*`). Toggling it in the card turns filter + salt system off temporarily (see "Quick controls").                         |
-| `confirm_actions`     | boolean | no       | Ask for confirmation before actions (default `true`).                                                                                                    |
-| `theme_mode`          | string  | no       | `system` (default, follows the active HA theme) \| `light` \| `dark`. See below.                                                                         |
-| `layout_options`      | object  | no       | Sections dashboard sizing (`grid_columns`, `grid_rows`).                                                                                                 |
+| Field                 | Type    | Required | Description                                                                                                                                                                                       |
+| --------------------- | ------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`                | string  | yes      | Must be `custom:pool-dashboard-card`.                                                                                                                                                             |
+| `title`               | string  | no       | Card heading (default `Zwembad`).                                                                                                                                                                 |
+| `status`              | entity  | no       | Optional status sensor. Currently used only as an extra required-field check for the "unavailable" state — the card always derives its own status label.                                          |
+| `water_temperature`   | entity  | yes      | Pool water temperature. **Map this to the same sensor your heater automations use.**                                                                                                              |
+| `target_temperature`  | entity  | yes      | Target temperature, `number.*` or `input_number.*` so the stepper can write it.                                                                                                                   |
+| `ambient_temperature` | entity  | yes      | Outside/air temperature, shown as an informational badge on the pool illustration.                                                                                                                |
+| `heater_power`        | entity  | yes      | Heat pump on/off, `switch.*` or `input_boolean.*`.                                                                                                                                                |
+| `has_error`           | entity  | no       | Heat pump fault flag (`binary_sensor.*`). `on` → critical status.                                                                                                                                 |
+| `salt_system_fault`   | entity  | no       | Salt system power-draw sensor. Used with `salt_system.fault_below_watts` for a simple flow-fault indicator (see below), and shown as the salt system's "Verbruik" badge on the pool illustration. |
+| `swim_mode`           | entity  | no       | Swim-mode helper (`input_boolean.*`). Toggling it in the card turns filter + salt system off temporarily (see "Quick controls").                                                                  |
+| `confirm_actions`     | boolean | no       | Ask for confirmation before actions (default `true`).                                                                                                                                             |
+| `theme_mode`          | string  | no       | `system` (default, follows the active HA theme) \| `light` \| `dark`. See below.                                                                                                                  |
+| `layout_options`      | object  | no       | Sections dashboard sizing (`grid_columns`, `grid_rows`).                                                                                                                                          |
 
 ## `filter`
 
-| Field                 | Description                                                                            |
-| --------------------- | -------------------------------------------------------------------------------------- |
-| `filter.pump`         | Filter pump, `switch.*`. Drives the Start/Stop toggle and the running hours meta line. |
-| `filter.hours_today`  | Hours run today (sensor).                                                              |
-| `filter.hours_target` | Target hours for today (`input_number.*` or sensor).                                   |
-| `filter.catchup_mode` | Filter catch-up helper (`input_boolean.*`). No confirmation (quick control).           |
+| Field                 | Description                                                                               |
+| --------------------- | ----------------------------------------------------------------------------------------- |
+| `filter.pump`         | Filter pump, `switch.*`. Drives the Start/Stop toggle and the running hours meta line.    |
+| `filter.hours_today`  | Hours run today (sensor).                                                                 |
+| `filter.hours_target` | Target hours for today (`input_number.*` or sensor).                                      |
+| `filter.catchup_mode` | Filter catch-up helper (`input_boolean.*`). No confirmation (quick control).              |
+| `filter.power_draw`   | Optional live power sensor (W), shown as the pump's "Verbruik" badge on the illustration. |
+| `filter.label`        | Optional display name on the pool illustration (default "Filterpomp").                    |
 
 ## `heater`
 
-All optional; each renders in **Instellingen & diagnostiek** only when
-configured, and gracefully as "Niet beschikbaar" when the entity's state is
-`unavailable` — several of these are structurally unavailable on some
-installs (see `docs/troubleshooting.md`).
+All optional. `heater.label` and `heater.power_draw` are shown on the pool
+illustration; every other field renders in **Instellingen & diagnostiek**
+only when configured, and gracefully as "Niet beschikbaar" when the entity's
+state is `unavailable` — several of these are structurally unavailable on
+some installs (see `docs/troubleshooting.md`).
 
-| Field                        | Description                                                                     |
-| ---------------------------- | ------------------------------------------------------------------------------- |
-| `heater.mode`                | Heat pump operating mode.                                                       |
-| `heater.compressor`          | Compressor on/off diagnostic.                                                   |
-| `heater.circulate_pump`      | Circulation pump diagnostic.                                                    |
-| `heater.coil_temperature`    | Coil temperature diagnostic.                                                    |
-| `heater.exhaust_temperature` | Exhaust temperature diagnostic.                                                 |
-| `heater.error_description`   | Free-text fault description, shown in the status banner when `has_error` is on. |
-| `heater.proxy_online`        | Connectivity diagnostic for the heat-pump proxy device.                         |
+| Field                        | Description                                                                        |
+| ---------------------------- | ---------------------------------------------------------------------------------- |
+| `heater.label`               | Optional display name on the pool illustration (default "Warmtepomp").             |
+| `heater.power_draw`          | Optional live power sensor (W), shown as the "Verbruik" badge on the illustration. |
+| `heater.mode`                | Heat pump operating mode.                                                          |
+| `heater.compressor`          | Compressor on/off diagnostic.                                                      |
+| `heater.circulate_pump`      | Circulation pump diagnostic.                                                       |
+| `heater.coil_temperature`    | Coil temperature diagnostic.                                                       |
+| `heater.exhaust_temperature` | Exhaust temperature diagnostic.                                                    |
+| `heater.error_description`   | Free-text fault description, shown in the status banner when `has_error` is on.    |
+| `heater.proxy_online`        | Connectivity diagnostic for the heat-pump proxy device.                            |
 
 ## `salt_system`
 
 | Field                            | Description                                                                                                                                                                                                                                                                                                                                             |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `salt_system.power`              | Salt system on/off, `switch.*`.                                                                                                                                                                                                                                                                                                                         |
+| `salt_system.label`              | Optional display name on the pool illustration (default "Zoutsysteem").                                                                                                                                                                                                                                                                                 |
 | `salt_system.chlorination_level` | Chlorination level, `number.*`, shown in settings.                                                                                                                                                                                                                                                                                                      |
 | `salt_system.boost`              | Boost switch, `switch.*`. The card toggles it on/off with the same `switch.turn_on`/`switch.turn_off` domain-safe lookup as every other on/off control.                                                                                                                                                                                                 |
 | `salt_system.boost_remaining`    | Remaining boost time, shown live on the Boost control while active.                                                                                                                                                                                                                                                                                     |

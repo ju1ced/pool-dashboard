@@ -56,6 +56,63 @@ const THEME_TOKENS = {
   },
 };
 
+// Palette for the illustrated pool scene (layer 1 restyle). These have no
+// Home Assistant CSS variable to key off — HA doesn't ship "wood" or
+// "pool-equipment-plastic" tokens — so, unlike THEME_TOKENS above, this pair
+// is always resolved and applied explicitly (see `_applyIllusPalette`),
+// picking dark vs light from `theme_mode` when set, else from
+// `hass.themes.darkMode`.
+const ILLUS_TOKENS = {
+  dark: {
+    "--pd-illus-sky-1": "#172336",
+    "--pd-illus-sky-2": "#241d17",
+    "--pd-illus-yard": "#16130f",
+    "--pd-illus-wood-light": "#8c6338",
+    "--pd-illus-wood": "#6b4726",
+    "--pd-illus-wood-dark": "#3c2614",
+    "--pd-illus-water-1": "#0b3a4d",
+    "--pd-illus-water-2": "#1e7fa0",
+    "--pd-illus-equip": "#423d33",
+    "--pd-illus-equip-panel": "#565046",
+    "--pd-illus-panel-dark": "#0c0a08",
+    "--pd-illus-pump-body": "#726c59",
+    "--pd-illus-pump-lid": "#4a4638",
+    "--pd-illus-heater-accent": "#eab765",
+    "--pd-illus-screen": "#081820",
+    "--pd-illus-screen-text": "#79eee0",
+  },
+  light: {
+    "--pd-illus-sky-1": "#cdeaf0",
+    "--pd-illus-sky-2": "#eef2df",
+    "--pd-illus-yard": "#f3ecdf",
+    "--pd-illus-wood-light": "#c89463",
+    "--pd-illus-wood": "#a9713f",
+    "--pd-illus-wood-dark": "#7a4e27",
+    "--pd-illus-water-1": "#1e86ac",
+    "--pd-illus-water-2": "#7fdcef",
+    "--pd-illus-equip": "#eceae4",
+    "--pd-illus-equip-panel": "#cfccc2",
+    "--pd-illus-panel-dark": "#201c18",
+    "--pd-illus-pump-body": "#c7c4b4",
+    "--pd-illus-pump-lid": "#e3e0d3",
+    "--pd-illus-heater-accent": "#d9a441",
+    "--pd-illus-screen": "#0e2430",
+    "--pd-illus-screen-text": "#7df3e6",
+  },
+};
+
+/**
+ * Which of ILLUS_TOKENS.dark/.light applies: the `theme_mode` override when
+ * set to "light"/"dark", else Home Assistant's own dark-mode flag
+ * (`hass.themes.darkMode`), defaulting to dark when neither is known (no
+ * `hass` yet, e.g. the very first render).
+ */
+function resolveIllusMode(config, hass) {
+  const mode = resolveThemeMode(config);
+  if (mode === "light" || mode === "dark") return mode;
+  return hass?.themes?.darkMode === false ? "light" : "dark";
+}
+
 /** Escape a value for safe interpolation into innerHTML. */
 function escapeHtml(value) {
   return String(value ?? "").replace(
@@ -247,6 +304,30 @@ function hasRelevantChange(prevHass, nextHass, entityIds) {
 }
 
 /**
+ * Simple, point-in-time salt-system flow-fault check: the configured
+ * `salt_system_fault` power reading dips below `salt_system.fault_below_watts`
+ * (default 15) while `salt_system.power` is switched on. Deliberately not the
+ * automation's own time-windowed fault detection — see
+ * `salt_system.fault_below_watts` in docs/configuration.md. Shared by
+ * `deriveStatus` (critical status banner) and the pool illustration's
+ * debietfout pill so the two can never disagree.
+ * Returns `{ watts, threshold }` when the fault condition holds, else null.
+ */
+function saltSystemFault(config, hass) {
+  const states = hass?.states || {};
+  const faultEntity = config?.salt_system_fault;
+  const saltPowerEntity = config?.salt_system?.power;
+  if (!faultEntity || !saltPowerEntity) return null;
+  const threshold = Number.isFinite(config?.salt_system?.fault_below_watts)
+    ? config.salt_system.fault_below_watts
+    : 15;
+  const saltOn = String(states[saltPowerEntity]?.state).toLowerCase() === "on";
+  const watts = parseNumeric(states[faultEntity]?.state);
+  if (!saltOn || watts === null || watts >= threshold) return null;
+  return { watts, threshold };
+}
+
+/**
  * Aggregate the overall pool status from a config + hass snapshot.
  * Pure: reads only `hass.states`. Precedence (highest first):
  *   unavailable > critical > warning > active > normal
@@ -298,22 +379,13 @@ function deriveStatus(config, hass) {
     };
   }
 
-  const faultEntity = config?.salt_system_fault;
-  const saltPowerEntity = config?.salt_system?.power;
-  const faultThreshold = Number.isFinite(config?.salt_system?.fault_below_watts)
-    ? config.salt_system.fault_below_watts
-    : 15;
-  if (faultEntity && saltPowerEntity) {
-    const saltOn =
-      String(states[saltPowerEntity]?.state).toLowerCase() === "on";
-    const watts = parseNumeric(states[faultEntity]?.state);
-    if (saltOn && watts !== null && watts < faultThreshold) {
-      return {
-        key: "critical",
-        label: "Mogelijke debietfout zoutsysteem",
-        detail: `Vermogen (${watts} W) onder drempel (${faultThreshold} W) terwijl het zoutsysteem aan staat.`,
-      };
-    }
+  const fault = saltSystemFault(config, hass);
+  if (fault) {
+    return {
+      key: "critical",
+      label: "Mogelijke debietfout zoutsysteem",
+      detail: `Vermogen (${fault.watts} W) onder drempel (${fault.threshold} W) terwijl het zoutsysteem aan staat.`,
+    };
   }
 
   const overrides = overridesFor(config, hass);
@@ -408,6 +480,7 @@ class PoolDashboardCard extends CardBase {
     this._config = config;
     this._entityIds = collectEntityIds(config);
     this._applyThemeOverride();
+    this._applyIllusPalette();
     this._render();
   }
 
@@ -416,6 +489,11 @@ class PoolDashboardCard extends CardBase {
     this._hass = hass;
     if (!this._config) return;
     this._maybeLoadHistory();
+    // Cheap (a handful of inline custom properties) — re-applied on every
+    // push so `theme_mode: system` keeps following HA's live dark-mode
+    // toggle, which (unlike the core --pd-* tokens) this palette can't do
+    // via CSS var() alone — see ILLUS_TOKENS.
+    this._applyIllusPalette();
     if (this._built && prev && !hasRelevantChange(prev, hass, this._entityIds))
       return;
     this._render();
@@ -484,6 +562,13 @@ class PoolDashboardCard extends CardBase {
         this.style.setProperty(name, value),
       );
     }
+  }
+
+  _applyIllusPalette() {
+    const tokens = ILLUS_TOKENS[resolveIllusMode(this._config, this._hass)];
+    Object.entries(tokens).forEach(([name, value]) =>
+      this.style.setProperty(name, value),
+    );
   }
 
   /* --- small state accessors ------------------------------------- */
@@ -770,14 +855,36 @@ class PoolDashboardCard extends CardBase {
       </div>`;
   }
 
+  /**
+   * Illustrated pool scene (Fase 3.1/3.2 restyle): a generic wood-decked pool
+   * with three illustrated equipment silhouettes (filter pump, salt system,
+   * heat pump), badges for live readings, and a debietfout pill driven by
+   * `saltSystemFault` — the same check the status banner uses, so the two
+   * can never disagree. Geometry (viewBox, positions) is ported 1:1 from the
+   * approved design mockup; only fills/labels/values are data-driven.
+   */
   _renderPoolIllustration() {
     const water = this._measure(this._config.water_temperature);
     const ambient = this._measure(this._config.ambient_temperature);
+    const target = this._measure(this._config.target_temperature);
     const ph = this._measure(this._config.water_quality?.ph);
     const orp = this._measure(this._config.water_quality?.orp, {
       unitOverride: "mV",
     });
     const salinity = this._measure(this._config.water_quality?.salinity);
+    const saltPower = this._measure(this._config.salt_system_fault, {
+      digits: 0,
+    });
+    const pumpPower = this._measure(this._config.filter?.power_draw, {
+      digits: 0,
+    });
+    const heaterPower = this._measure(this._config.heater?.power_draw, {
+      digits: 0,
+    });
+    const filterHours = this._measure(this._config.filter?.hours_today);
+    const filterTarget = this._measure(this._config.filter?.hours_target, {
+      digits: 0,
+    });
 
     const heaterFields = [
       "compressor",
@@ -792,39 +899,195 @@ class PoolDashboardCard extends CardBase {
       return entityId && isUnavailable(this._obj(entityId)?.state);
     }).length;
 
-    const badge = (dotClass, entityId, label, m) => `
-      <span class="chip" ${entityId ? `data-info="${escapeHtml(entityId)}"` : ""}>
-        <span class="dot ${dotClass}"></span>${escapeHtml(label)} <b>${escapeHtml(m.value)}${m.unit ? ` ${escapeHtml(m.unit)}` : ""}</b>
-      </span>`;
+    const fault = saltSystemFault(this._config, this._hass || { states: {} });
+
+    const dotFor = (entityId) => {
+      if (!entityId) return "muted";
+      const state = this._obj(entityId)?.state;
+      if (isUnavailable(state)) return "offline";
+      return String(state).toLowerCase() === "on" ? "ok" : "muted";
+    };
+
+    const pos = (left, top) => `left:${left}%; top:${top}%;`;
+
+    const badge = (left, top, entityId, label, m, { onDark = false } = {}) => `
+      <div class="pi-badge${onDark ? " on-dark" : ""}" style="${pos(left, top)}" ${entityId ? `data-info="${escapeHtml(entityId)}"` : ""}>
+        <span class="lbl">${escapeHtml(label)}</span>
+        <span class="val">${escapeHtml(m.value)}${m.unit ? ` ${escapeHtml(m.unit)}` : ""}</span>
+      </div>`;
+
+    const equipLabel = (left, top, entityId, label) => `
+      <div class="pi-equip-label" style="${pos(left, top)}" ${entityId ? `data-info="${escapeHtml(entityId)}"` : ""}>
+        <span class="dot ${dotFor(entityId)}"></span>${escapeHtml(label)}
+      </div>`;
+
+    const pumpLabel = this._config.filter?.label || "Filterpomp";
+    const saltLabel = this._config.salt_system?.label || "Zoutsysteem";
+    const heaterLabel = this._config.heater?.label || "Warmtepomp";
 
     return `
       <div class="pool-illustration">
-        <svg viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-          <defs>
-            <linearGradient id="pi-water-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="var(--pd-info)" stop-opacity="0.55"></stop>
-              <stop offset="100%" stop-color="var(--pd-info)" stop-opacity="0.16"></stop>
-            </linearGradient>
-          </defs>
-          <rect x="0" y="0" width="600" height="220" rx="22" class="pi-deck"></rect>
-          <rect x="12" y="12" width="576" height="196" rx="15" class="pi-water" fill="url(#pi-water-grad)"></rect>
-          <path class="pi-wave" d="M12,70 Q 56,56 100,70 T 188,70 T 276,70 T 364,70 T 452,70 T 540,70 T 588,70"></path>
-          <path class="pi-wave pi-wave-2" d="M12,126 Q 56,112 100,126 T 188,126 T 276,126 T 364,126 T 452,126 T 540,126 T 588,126"></path>
-          <path class="pi-wave pi-wave-3" d="M12,174 Q 56,162 100,174 T 188,174 T 276,174 T 364,174 T 452,174 T 540,174 T 588,174"></path>
-        </svg>
-        <div class="pi-overlay">
-          <div class="pi-top-row">
-            ${badge(ambient.available ? "muted" : "offline", this._config.ambient_temperature, "Buiten", ambient)}
-            ${noticeCount > 0 ? `<span class="chip pi-alert"><span class="dot warning"></span>${noticeCount} melding${noticeCount > 1 ? "en" : ""}</span>` : ""}
-          </div>
-          <div class="pi-center" ${this._config.water_temperature ? `data-info="${escapeHtml(this._config.water_temperature)}"` : ""}>
-            <span class="pi-water-value ${water.available ? "" : "offline"}"><b>${escapeHtml(water.value)}</b>${water.available && water.unit ? `<small>${escapeHtml(water.unit)}</small>` : ""}</span>
-            <span class="pi-water-label">Watertemperatuur</span>
-          </div>
-          <div class="pi-bottom-row">
-            ${this._config.water_quality?.ph ? badge(ph.available ? "ok" : "offline", this._config.water_quality.ph, "pH", ph) : ""}
-            ${this._config.water_quality?.orp ? badge(orp.available ? "ok" : "offline", this._config.water_quality.orp, "ORP", orp) : ""}
-            ${this._config.water_quality?.salinity ? badge(salinity.available ? "ok" : "offline", this._config.water_quality.salinity, "Zout", salinity) : ""}
+        <div class="pi-scene">
+          <svg viewBox="0 0 1040 680" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="pi-sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--pd-illus-sky-1)"></stop>
+                <stop offset="100%" stop-color="var(--pd-illus-sky-2)"></stop>
+              </linearGradient>
+              <linearGradient id="pi-water" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="var(--pd-illus-water-2)"></stop>
+                <stop offset="100%" stop-color="var(--pd-illus-water-1)"></stop>
+              </linearGradient>
+              <clipPath id="pi-wood-clip">
+                <polygon points="72,40 728,40 760,72 760,248 728,280 72,280 40,248 40,72"></polygon>
+              </clipPath>
+              <clipPath id="pi-egg-clip">
+                <ellipse cx="865" cy="470" rx="105" ry="135"></ellipse>
+              </clipPath>
+            </defs>
+
+            <rect x="0" y="0" width="1040" height="680" fill="url(#pi-sky)"></rect>
+            <rect x="0" y="310" width="1040" height="370" fill="var(--pd-illus-yard)"></rect>
+            <line x1="0" y1="310" x2="1040" y2="310" stroke="var(--pd-border)" stroke-width="2"></line>
+
+            <ellipse cx="400" cy="298" rx="380" ry="16" fill="var(--pd-text)" opacity=".08"></ellipse>
+
+            <polygon points="72,40 728,40 760,72 760,248 728,280 72,280 40,248 40,72" fill="var(--pd-illus-wood)"></polygon>
+            <g clip-path="url(#pi-wood-clip)">
+              <g stroke="var(--pd-illus-wood-dark)" stroke-width="2" opacity=".4">
+                <line x1="20" y1="90" x2="780" y2="90"></line>
+                <line x1="20" y1="104" x2="780" y2="104"></line>
+                <line x1="20" y1="118" x2="780" y2="118"></line>
+                <line x1="20" y1="132" x2="780" y2="132"></line>
+                <line x1="20" y1="146" x2="780" y2="146"></line>
+                <line x1="20" y1="160" x2="780" y2="160"></line>
+                <line x1="20" y1="174" x2="780" y2="174"></line>
+                <line x1="20" y1="188" x2="780" y2="188"></line>
+                <line x1="20" y1="202" x2="780" y2="202"></line>
+                <line x1="20" y1="216" x2="780" y2="216"></line>
+                <line x1="20" y1="230" x2="780" y2="230"></line>
+                <line x1="20" y1="244" x2="780" y2="244"></line>
+                <line x1="20" y1="258" x2="780" y2="258"></line>
+              </g>
+              <g stroke="var(--pd-illus-wood-dark)" stroke-width="3" opacity=".5">
+                <line x1="203" y1="72" x2="203" y2="280"></line>
+                <line x1="334" y1="72" x2="334" y2="280"></line>
+                <line x1="466" y1="72" x2="466" y2="280"></line>
+                <line x1="597" y1="72" x2="597" y2="280"></line>
+              </g>
+            </g>
+
+            <rect x="72" y="40" width="656" height="18" fill="var(--pd-illus-wood-light)"></rect>
+            <rect x="72" y="58" width="656" height="32" fill="url(#pi-water)"></rect>
+            <rect x="650" y="62" width="70" height="24" rx="4" fill="var(--pd-illus-water-2)" opacity=".55"></rect>
+            <path d="M110,74 Q160,67 210,74 T320,74 T430,74 T540,74 T650,74" fill="none" stroke="var(--pd-illus-sky-1)" stroke-width="2" stroke-linecap="round" opacity=".5"></path>
+
+            <g fill="var(--pd-illus-equip-panel)">
+              <polygon points="58,280 90,280 82,304 66,304"></polygon>
+              <polygon points="280,280 308,280 302,300 286,300"></polygon>
+              <polygon points="500,280 528,280 522,300 506,300"></polygon>
+              <polygon points="712,280 744,280 736,304 720,304"></polygon>
+            </g>
+
+            <!-- filter pump -->
+            <rect x="65" y="610" width="270" height="12" rx="5" fill="var(--pd-illus-wood-dark)" opacity=".2"></rect>
+            <rect x="75" y="470" width="140" height="110" rx="50" fill="var(--pd-illus-pump-body)"></rect>
+            <rect x="235" y="460" width="140" height="76" rx="36" fill="var(--pd-illus-panel-dark)"></rect>
+            <rect x="255" y="480" width="60" height="16" rx="4" fill="var(--pd-illus-equip-panel)" opacity=".7"></rect>
+            <rect x="255" y="548" width="60" height="30" rx="9" fill="var(--pd-illus-equip-panel)"></rect>
+            <circle cx="270" cy="563" r="5" fill="var(--pd-illus-screen-text)"></circle>
+            <circle cx="290" cy="563" r="5" fill="var(--pd-illus-screen-text)"></circle>
+            <circle cx="155" cy="478" r="44" fill="var(--pd-illus-pump-lid)" stroke="var(--pd-illus-equip-panel)" stroke-width="4"></circle>
+            <circle cx="155" cy="478" r="30" fill="none" stroke="var(--pd-illus-equip-panel)" stroke-width="2" opacity=".5"></circle>
+            <circle cx="155" cy="478" r="6" fill="var(--pd-illus-panel-dark)"></circle>
+
+            <!-- salt system -->
+            <rect x="410" y="560" width="260" height="40" rx="20" fill="var(--pd-illus-equip)"></rect>
+            <circle cx="410" cy="580" r="16" fill="none" stroke="var(--pd-illus-equip-panel)" stroke-width="5"></circle>
+            <circle cx="670" cy="580" r="16" fill="none" stroke="var(--pd-illus-equip-panel)" stroke-width="5"></circle>
+            <rect x="520" y="522" width="40" height="48" fill="var(--pd-illus-equip-panel)"></rect>
+            <rect x="440" y="400" width="200" height="130" rx="28" fill="var(--pd-illus-equip)"></rect>
+            <rect x="456" y="416" width="168" height="90" rx="16" fill="var(--pd-illus-panel-dark)"></rect>
+            <rect x="482" y="434" width="100" height="34" rx="8" fill="var(--pd-illus-screen)"></rect>
+            <circle cx="610" cy="428" r="8" fill="var(--pd-ok)" opacity=".25"></circle>
+            <circle cx="610" cy="428" r="5" fill="var(--pd-ok)"></circle>
+            <g>
+              <circle cx="488" cy="486" r="10" fill="var(--pd-illus-screen-text)" opacity=".2"></circle>
+              <circle cx="488" cy="486" r="7" fill="var(--pd-illus-screen-text)"></circle>
+              <circle cx="516" cy="486" r="10" fill="var(--pd-illus-screen-text)" opacity=".2"></circle>
+              <circle cx="516" cy="486" r="7" fill="var(--pd-illus-screen-text)"></circle>
+              <circle cx="544" cy="486" r="10" fill="var(--pd-illus-screen-text)" opacity=".2"></circle>
+              <circle cx="544" cy="486" r="7" fill="var(--pd-illus-screen-text)"></circle>
+              <circle cx="572" cy="486" r="10" fill="var(--pd-illus-screen-text)" opacity=".2"></circle>
+              <circle cx="572" cy="486" r="7" fill="var(--pd-illus-screen-text)"></circle>
+            </g>
+
+            <!-- heat pump -->
+            <ellipse cx="865" cy="475" rx="140" ry="165" fill="var(--pd-illus-heater-accent)" opacity=".12"></ellipse>
+            <ellipse cx="865" cy="615" rx="62" ry="13" fill="var(--pd-illus-equip-panel)"></ellipse>
+            <rect x="840" y="598" width="50" height="20" fill="var(--pd-illus-equip-panel)"></rect>
+            <ellipse cx="865" cy="470" rx="105" ry="135" fill="var(--pd-illus-equip)"></ellipse>
+            <g clip-path="url(#pi-egg-clip)">
+              <rect x="760" y="335" width="210" height="140" fill="var(--pd-illus-panel-dark)"></rect>
+              <g fill="var(--pd-illus-equip-panel)" opacity=".55">
+                <rect x="765" y="335" width="9" height="270"></rect>
+                <rect x="782" y="335" width="9" height="270"></rect>
+                <rect x="799" y="335" width="9" height="270"></rect>
+                <rect x="816" y="335" width="9" height="270"></rect>
+                <rect x="833" y="335" width="9" height="270"></rect>
+                <rect x="850" y="335" width="9" height="270"></rect>
+                <rect x="867" y="335" width="9" height="270"></rect>
+                <rect x="884" y="335" width="9" height="270"></rect>
+                <rect x="901" y="335" width="9" height="270"></rect>
+                <rect x="918" y="335" width="9" height="270"></rect>
+                <rect x="935" y="335" width="9" height="270"></rect>
+                <rect x="952" y="335" width="9" height="270"></rect>
+                <rect x="969" y="335" width="9" height="270"></rect>
+              </g>
+              <rect x="760" y="475" width="210" height="13" fill="var(--pd-illus-water-2)"></rect>
+              <ellipse cx="822" cy="400" rx="38" ry="44" fill="var(--pd-illus-equip)"></ellipse>
+              <ellipse cx="908" cy="400" rx="38" ry="44" fill="var(--pd-illus-equip)"></ellipse>
+              <circle cx="814" cy="406" r="10" fill="var(--pd-illus-panel-dark)"></circle>
+              <circle cx="900" cy="406" r="10" fill="var(--pd-illus-panel-dark)"></circle>
+            </g>
+            <path d="M845,444 L885,444 L865,464 Z" fill="var(--pd-illus-heater-accent)"></path>
+            <rect x="852" y="452" width="26" height="13" rx="3" fill="var(--pd-illus-panel-dark)"></rect>
+          </svg>
+
+          <div class="pi-overlay">
+            ${
+              noticeCount > 0
+                ? `<div class="pi-alert-badge" style="${pos(8, 4)}"><span class="dot warning"></span>${noticeCount} melding${noticeCount > 1 ? "en" : ""}</div>`
+                : ""
+            }
+
+            <div class="pi-float-therm ${water.available ? "" : "offline"}" style="${pos(38.5, 10.9)}" ${this._config.water_temperature ? `data-info="${escapeHtml(this._config.water_temperature)}"` : ""}>
+              <b>${escapeHtml(water.value)}${water.available ? "°" : ""}</b>
+              <span>Water</span>
+            </div>
+            ${this._config.ambient_temperature ? badge(92.3, 14, this._config.ambient_temperature, "Buiten", ambient) : ""}
+
+            ${equipLabel(19.2, 58.5, this._config.filter?.pump, pumpLabel)}
+            ${
+              this._config.filter?.hours_today
+                ? badge(19.2, 92.9, this._config.filter.hours_today, "Filter", {
+                    value: `${filterHours.value}${this._config.filter?.hours_target ? ` / ${filterTarget.value}` : ""}`,
+                    unit: "h",
+                  })
+                : ""
+            }
+            ${this._config.filter?.power_draw ? badge(28.3, 92.9, this._config.filter.power_draw, "Verbruik", pumpPower) : ""}
+
+            ${equipLabel(51.9, 56.2, this._config.salt_system?.power, saltLabel)}
+            ${fault ? `<div class="pi-warn-pill" style="${pos(63.9, 57.6)}">▲ debietfout</div>` : ""}
+            ${this._config.water_quality?.ph ? badge(40.4, 92.9, this._config.water_quality.ph, "pH", ph) : ""}
+            ${this._config.water_quality?.orp ? badge(49.5, 92.9, this._config.water_quality.orp, "ORP", orp) : ""}
+            ${this._config.water_quality?.salinity ? badge(58.7, 92.9, this._config.water_quality.salinity, "Zout", salinity) : ""}
+            ${this._config.salt_system_fault ? badge(67.8, 92.9, this._config.salt_system_fault, "Verbruik", saltPower) : ""}
+
+            ${equipLabel(83.2, 42, this._config.heater_power, heaterLabel)}
+            ${this._config.target_temperature ? badge(83.2, 76, this._config.target_temperature, "Doel", target, { onDark: true }) : ""}
+            ${this._config.heater?.power_draw ? badge(83.2, 85.5, this._config.heater.power_draw, "Verbruik", heaterPower, { onDark: true }) : ""}
           </div>
         </div>
       </div>`;
@@ -1060,25 +1323,43 @@ class PoolDashboardCard extends CardBase {
       .chip .dot.muted { background:var(--pd-text-muted); }
       .chip b { color:var(--pd-text); font-weight:700; font-size:12.5px; }
 
-      .pool-illustration { position:relative; border-radius:18px; overflow:hidden; min-height:168px; background:var(--pd-bg-raised); }
-      .pool-illustration svg { position:absolute; inset:0; width:100%; height:100%; display:block; }
-      .pi-deck { fill:var(--pd-bg-raised); }
-      .pi-water { stroke:var(--pd-border); stroke-width:1; }
-      .pi-wave { fill:none; stroke:var(--pd-info); stroke-opacity:.4; stroke-width:3; stroke-linecap:round; }
-      .pi-wave-2 { stroke-opacity:.25; }
-      .pi-wave-3 { stroke-opacity:.14; }
-      .pi-overlay { position:relative; z-index:1; display:flex; flex-direction:column; justify-content:space-between;
-        min-height:168px; padding:12px 14px 14px; gap:8px; }
-      .pi-top-row { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
-      .pi-alert { background:color-mix(in srgb, var(--pd-warning) 18%, var(--pd-bg-raised)); color:var(--pd-warning);
-        border-color:color-mix(in srgb, var(--pd-warning) 42%, transparent); }
-      .pi-center { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; text-align:center; cursor:pointer; }
-      .pi-water-value { display:inline-flex; align-items:baseline; gap:2px; font-size:34px; font-weight:800; color:var(--pd-text);
-        font-variant-numeric:tabular-nums; text-shadow:0 1px 3px color-mix(in srgb, var(--pd-bg) 55%, transparent); }
-      .pi-water-value small { font-size:15px; font-weight:700; }
-      .pi-water-value.offline { font-size:16px; font-weight:600; color:var(--pd-offline); }
-      .pi-water-label { font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--pd-text-muted); margin-top:2px; }
-      .pi-bottom-row { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+      .pool-illustration { max-width:900px; margin:0 auto; }
+      .pi-scene { position:relative; width:100%; aspect-ratio:1040/680; border-radius:18px; overflow:hidden; background:var(--pd-illus-yard); }
+      .pi-scene svg { position:absolute; inset:0; width:100%; height:100%; display:block; }
+      .pi-overlay { position:absolute; inset:0; }
+
+      .pi-badge { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:1px; cursor:pointer; }
+      .pi-badge .lbl { font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--pd-text-muted); }
+      .pi-badge .val { font-weight:700; font-size:13px; color:var(--pd-illus-screen-text); background:var(--pd-illus-screen);
+        border-radius:7px; padding:3px 8px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+      .pi-badge.on-dark .lbl { color:color-mix(in srgb, var(--pd-illus-screen-text) 55%, var(--pd-text-muted)); }
+
+      .pi-float-therm { position:absolute; transform:translate(-50%,-50%); width:64px; height:64px; border-radius:50%;
+        background:color-mix(in srgb, var(--pd-bg) 88%, transparent); border:3px solid var(--pd-illus-water-2);
+        display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;
+        box-shadow:0 4px 10px color-mix(in srgb, var(--pd-text) 22%, transparent); }
+      .pi-float-therm b { font-size:14px; font-weight:700; line-height:1; color:var(--pd-text); font-variant-numeric:tabular-nums; }
+      .pi-float-therm span { font-size:8px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--pd-text-muted); margin-top:2px; }
+      .pi-float-therm.offline b { font-size:11px; color:var(--pd-offline); }
+
+      .pi-equip-label { position:absolute; transform:translate(-50%,0); font-size:11px; font-weight:700; color:var(--pd-text);
+        text-align:center; display:flex; align-items:center; gap:5px; white-space:nowrap; cursor:pointer; }
+      .pi-equip-label .dot { width:7px; height:7px; border-radius:50%; flex:none; background:var(--pd-text-muted); }
+      .pi-equip-label .dot.ok { background:var(--pd-ok); box-shadow:0 0 6px color-mix(in srgb, var(--pd-ok) 70%, transparent); }
+      .pi-equip-label .dot.offline { background:var(--pd-offline); }
+
+      .pi-warn-pill { position:absolute; transform:translate(-50%,-50%); display:inline-flex; align-items:center; gap:5px;
+        background:color-mix(in srgb, var(--pd-warning) 20%, var(--pd-bg)); border:1px solid color-mix(in srgb, var(--pd-warning) 45%, transparent);
+        color:var(--pd-warning); font-size:10px; font-weight:700; padding:4px 9px 4px 7px; border-radius:99px; white-space:nowrap; }
+
+      .pi-alert-badge { position:absolute; transform:translate(-50%,-50%); display:inline-flex; align-items:center; gap:5px;
+        background:color-mix(in srgb, var(--pd-warning) 20%, var(--pd-bg)); border:1px solid color-mix(in srgb, var(--pd-warning) 45%, transparent);
+        color:var(--pd-warning); font-size:11px; font-weight:700; padding:4px 10px 4px 8px; border-radius:99px; white-space:nowrap; cursor:default; }
+      .pi-alert-badge .dot { width:7px; height:7px; border-radius:50%; background:var(--pd-warning); flex:none; }
+
+      @media (max-width: 480px) {
+        .pi-badge .val, .pi-float-therm b { font-size:11px; }
+      }
 
       .override-banner { display:flex; align-items:flex-start; gap:9px; background:color-mix(in srgb, var(--pd-warning) 14%, transparent);
         border:1px solid color-mix(in srgb, var(--pd-warning) 36%, transparent); border-radius:12px; padding:10px 11px; font-size:12px; color:var(--pd-text-muted); }
@@ -1261,11 +1542,14 @@ if (typeof module !== "undefined" && module.exports) {
     setValueDomain,
     shouldConfirm,
     resolveThemeMode,
+    ILLUS_TOKENS,
+    resolveIllusMode,
     modeImpactSummary,
     overridesFor,
     collectEntityIds,
     hasRelevantChange,
     deriveStatus,
+    saltSystemFault,
     historyBars,
     THEME_TOKENS,
   };
