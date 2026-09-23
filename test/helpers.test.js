@@ -16,8 +16,11 @@ const {
   collectEntityIds,
   hasRelevantChange,
   deriveStatus,
+  saltSystemFault,
   historyBars,
   THEME_TOKENS,
+  ILLUS_TOKENS,
+  resolveIllusMode,
 } = require("../pool-dashboard.js");
 
 test("isUnavailable detects the empty states", () => {
@@ -279,6 +282,57 @@ test("deriveStatus: salt fault is critical only while the salt system is on", ()
     }).key,
     "normal",
   );
+});
+
+test("saltSystemFault: the pool illustration's debietfout pill uses the exact same check as deriveStatus", () => {
+  const config = {
+    salt_system_fault: "sensor.salt_power",
+    salt_system: { power: "switch.salt", fault_below_watts: 15 },
+  };
+  assert.equal(
+    saltSystemFault(config, {
+      states: {
+        "sensor.salt_power": { state: "3" },
+        "switch.salt": { state: "on" },
+      },
+    })?.watts,
+    3,
+  );
+  assert.equal(
+    saltSystemFault(config, {
+      states: {
+        "sensor.salt_power": { state: "3" },
+        "switch.salt": { state: "off" },
+      },
+    }),
+    null,
+  );
+  assert.equal(
+    saltSystemFault(config, {
+      states: {
+        "sensor.salt_power": { state: "20" },
+        "switch.salt": { state: "on" },
+      },
+    }),
+    null,
+  );
+  assert.equal(saltSystemFault({}, { states: {} }), null);
+});
+
+test("resolveIllusMode: theme_mode override wins, else falls back to hass.themes.darkMode", () => {
+  assert.equal(resolveIllusMode({ theme_mode: "light" }, {}), "light");
+  assert.equal(resolveIllusMode({ theme_mode: "dark" }, {}), "dark");
+  assert.equal(resolveIllusMode({}, { themes: { darkMode: false } }), "light");
+  assert.equal(resolveIllusMode({}, { themes: { darkMode: true } }), "dark");
+  assert.equal(resolveIllusMode({}, undefined), "dark");
+});
+
+test("ILLUS_TOKENS carries a literal light and dark pair for every illustration token", () => {
+  const lightKeys = Object.keys(ILLUS_TOKENS.light).sort();
+  const darkKeys = Object.keys(ILLUS_TOKENS.dark).sort();
+  assert.deepEqual(lightKeys, darkKeys);
+  assert.ok(lightKeys.includes("--pd-illus-wood"));
+  assert.ok(lightKeys.includes("--pd-illus-water-1"));
 });
 
 test("deriveStatus: warning (override) beats active (something running)", () => {
