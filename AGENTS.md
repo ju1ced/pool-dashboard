@@ -64,3 +64,7 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
 - Fase 3: card, minimal editor, tests, HACS files, docs, CI.
 - Fase 3.1: status chips → illustrated pool visual (layer 1 restyle only, no
   logic/entity-contract change).
+- §5 technical proposal: exact helper/script YAML and per-automation
+  condition-edit pattern for the season-mode backend, in
+  `docs/design/season-mode-backend.md` — documentation only, awaiting
+  separate approval; nothing built in Home Assistant.
