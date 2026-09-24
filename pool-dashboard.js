@@ -1413,6 +1413,12 @@ class PoolDashboardCard extends CardBase {
       </details>`;
   }
 
+  /**
+   * POOL-23: rows are clustered into labelled subsections instead of one
+   * flat list — this group has grown past the point where a flat list
+   * stays scannable. Empty subsections (no configured entities) render
+   * nothing, so the group degrades gracefully for minimal configs.
+   */
   _renderSettingsGroup() {
     const wq = this._config.water_quality || {};
     const heater = this._config.heater || {};
@@ -1466,26 +1472,67 @@ class PoolDashboardCard extends CardBase {
       if (cost === null) return "";
       return `<div class="settings-row" data-info="${escapeHtml(wattsEntityId)}"><span class="l">${escapeHtml(label)}</span><span class="v">€${cost.toFixed(2)}/u</span></div>`;
     };
+    const subgroups = [
+      {
+        title: "Automatisch bijgewerkt",
+        rows: [
+          settingRow(this._config.comfort_score, "Comfortscore", {
+            digits: 0,
+            unitOverride: "/ 100",
+          }),
+          dateRow(
+            this._config.target_temperature_updated,
+            "Doeltemperatuur laatst aangepast",
+          ),
+          settingRow(this._config.pv_mode, "PV-modus"),
+        ],
+      },
+      {
+        title: "Waterkwaliteit",
+        rows: [
+          setpointRow(wq.ph_setpoint, "pH-setpoint"),
+          setpointRow(wq.orp_setpoint, "ORP-setpoint", {
+            unitOverride: "mV",
+          }),
+          settingRow(
+            this._config.salt_system?.chlorination_level,
+            "Chlorinatie",
+            { unitOverride: "%" },
+          ),
+        ],
+      },
+      {
+        title: "Verbruikskost",
+        rows: [
+          costRow(this._config.filter?.power_draw, "Filterpomp verbruik"),
+          costRow(this._config.heater?.power_draw, "Warmtepomp verbruik"),
+          costRow(this._config.salt_system_fault, "Zoutsysteem verbruik"),
+        ],
+      },
+      {
+        title: "Warmtepomp diagnostiek",
+        rows: [
+          settingRow(heater.mode, "Warmtepomp-modus"),
+          settingRow(heater.compressor, "Compressor"),
+          settingRow(heater.circulate_pump, "Circulatiepomp"),
+          settingRow(heater.coil_temperature, "Coil-temperatuur"),
+          settingRow(heater.exhaust_temperature, "Uitlaattemperatuur"),
+          settingRow(heater.proxy_online, "Proxy online"),
+        ],
+      },
+    ];
+    const body = subgroups
+      .map(({ title, rows }) => {
+        const content = rows.filter(Boolean).join("");
+        return content
+          ? `<div class="subgroup"><div class="section-label" style="margin-bottom:6px;">${escapeHtml(title)}</div>${content}</div>`
+          : "";
+      })
+      .join("");
     return `
       <details class="group" data-group="settings">
         <summary>Instellingen &amp; diagnostiek <span class="chev">▶</span></summary>
-        <div class="body">
-          ${settingRow(this._config.comfort_score, "Comfortscore", { digits: 0, unitOverride: "/ 100" })}
-          ${dateRow(this._config.target_temperature_updated, "Doeltemperatuur laatst aangepast")}
-          ${settingRow(this._config.pv_mode, "PV-modus")}
-          ${setpointRow(wq.ph_setpoint, "pH-setpoint")}
-          ${setpointRow(wq.orp_setpoint, "ORP-setpoint", { unitOverride: "mV" })}
-          ${settingRow(this._config.salt_system?.chlorination_level, "Chlorinatie", { unitOverride: "%" })}
-          ${costRow(this._config.filter?.power_draw, "Filterpomp verbruik")}
-          ${costRow(this._config.heater?.power_draw, "Warmtepomp verbruik")}
-          ${costRow(this._config.salt_system_fault, "Zoutsysteem verbruik")}
-          ${settingRow(heater.mode, "Warmtepomp-modus")}
-          ${settingRow(heater.compressor, "Compressor")}
-          ${settingRow(heater.circulate_pump, "Circulatiepomp")}
-          ${settingRow(heater.coil_temperature, "Coil-temperatuur")}
-          ${settingRow(heater.exhaust_temperature, "Uitlaattemperatuur")}
-          ${settingRow(heater.proxy_online, "Proxy online")}
-        </div>
+        <div class="body">${body}</div>
       </details>`;
   }
 
@@ -1642,6 +1689,7 @@ class PoolDashboardCard extends CardBase {
       .settings-row .l { color:var(--pd-text-muted); }
       .settings-row .v { font-weight:600; font-variant-numeric:tabular-nums; }
       .settings-row .v.unavail { color:var(--pd-text-muted); font-style:italic; font-weight:400; }
+      .subgroup + .subgroup { margin-top:14px; }
 
       .history-block + .history-block { margin-top:14px; }
       .graph { height:64px; display:flex; align-items:flex-end; gap:3px; background:var(--pd-bg-raised);

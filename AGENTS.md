@@ -154,3 +154,12 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   dashboard tab happens to be open — a poor fit for a Lovelace card, and
   properly an HA automation's job instead. Left in the backlog with this
   note rather than forcing a fragile in-card implementation.
+- POOL-23 — `_renderSettingsGroup()` now clusters its rows into four
+  labelled subsections ("Automatisch bijgewerkt", "Waterkwaliteit",
+  "Verbruikskost", "Warmtepomp diagnostiek") instead of one flat list,
+  per the mockup at <https://claude.ai/artifact/ShfeftGuV3SUBLDD2SiU6e>.
+  A subsection with no configured entities renders nothing, so the group
+  degrades gracefully for minimal configs. Pure render restructuring —
+  no entity-key-contract change. Includes POOL-11/12/14/15/17's rows
+  (comfort score, PV-mode, doeltemperatuur-tijdstip, verbruikskost,
+  schrijfbare setpoints), rebased onto this branch once those merged.
