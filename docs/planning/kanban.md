@@ -11,7 +11,6 @@ Kanban-bord-Artifact — zie `AGENTS.md`/changelog voor de aanleiding.
 | ----------------------------- | ---------------------------------------- | ---------- | ------------------------------------- |
 | [POOL-7](tickets.md#pool-7)   | Modus-indicator op de illustratie        | P1         | Weinig waarde vóór POOL-5             |
 | [POOL-8](tickets.md#pool-8)   | Vorstbeveiliging expliciet zichtbaar     | P1         | Weinig waarde vóór POOL-5             |
-| [POOL-11](tickets.md#pool-11) | Comfortscore in de kaart                 | P1         | MCP-check nodig                       |
 | [POOL-14](tickets.md#pool-14) | Weersvoorspelling-context tonen          | P1         | MCP-check nodig                       |
 | [POOL-15](tickets.md#pool-15) | PV/zonne-optimalisatie zichtbaar maken   | P1         | MCP-check nodig                       |
 | [POOL-16](tickets.md#pool-16) | Meldingen/alerts-voorkeuren              | P1         | Scope-check (mogelijk HA-zijde)       |
@@ -33,7 +32,9 @@ Geen tickets.
 
 ## Review/validatie
 
-Geen tickets.
+| Ticket                        | Onderwerp                | Prioriteit | Blokkade                             |
+| ----------------------------- | ------------------------ | ---------- | ------------------------------------ |
+| [POOL-11](tickets.md#pool-11) | Comfortscore in de kaart | P1         | Wacht op visuele bevestiging (PR #7) |
 
 ## Klaar
 
