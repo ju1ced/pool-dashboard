@@ -90,7 +90,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-6 — Kaart: tonen welke automatiseringen actief zijn per modus
 
-**Status:** Review/validatie · **Prioriteit:** P1 · **Epic:** Seizoensmodus
+**Status:** Klaar · **Prioriteit:** P1 · **Epic:** Seizoensmodus
 
 - **Scope:** uitbreiding op de moduswissel-groep: per seizoensmodus tonen
   welke automatiseringen daardoor aan/uit staan, plus gegroepeerde
@@ -99,8 +99,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   vooruit gebouwd maar pas live testbaar zodra POOL-5 (geblokkeerd) af is.
 - **Acceptatiecriteria:** `npm run verify` groen; Node-simulatie van
   gegroepeerde automatiseringen en van het `mode.automations`-pad correct.
-- **Voortgang:** geïmplementeerd, PR open (github.com/ju1ced/pool-dashboard/pull/6),
-  wacht op visuele bevestiging door de gebruiker — geen tussentijdse release.
+- **Afgerond:** gemerged via PR #6, gereleased in v0.4.0.
 
 ---
 
@@ -138,7 +137,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-9 — Energieverbruik-historiek per toestel
 
-**Status:** Review/validatie · **Prioriteit:** P0 · **Epic:** Historiek & statistieken
+**Status:** Klaar · **Prioriteit:** P0 · **Epic:** Historiek & statistieken
 
 - **Scope:** de Historie-groep toont een 7-dagen staafgrafiek per
   geconfigureerde vermogen-sensor (filterpomp, warmtepomp, zoutsysteem),
@@ -147,8 +146,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 - **Afhankelijkheden:** POOL-1.
 - **Acceptatiecriteria:** `npm run verify` groen; per-entiteit best-effort
   fetch/render (laden/fout van één entiteit blokkeert de andere niet).
-- **Voortgang:** geïmplementeerd, PR open (github.com/ju1ced/pool-dashboard/pull/6),
-  wacht op visuele bevestiging door de gebruiker — geen tussentijdse release.
+- **Afgerond:** gemerged via PR #6, gereleased in v0.4.0.
 
 ---
 
@@ -156,7 +154,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-10 — Waterkwaliteit-trends (pH/ORP/zout over tijd)
 
-**Status:** Review/validatie · **Prioriteit:** P1 · **Epic:** Historiek & statistieken
+**Status:** Klaar · **Prioriteit:** P1 · **Epic:** Historiek & statistieken
 
 - **Scope:** niet enkel de actuele meting tonen, maar een verloop over de
   tijd — zelfde 7-dagen-staafgrafiekpatroon als de bestaande
@@ -166,11 +164,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   `_historyEntities()`).
 - **Acceptatiecriteria:** `npm run verify` groen; grafiek verschijnt enkel
   voor daadwerkelijk geconfigureerde waterkwaliteit-entiteiten.
-- **Voortgang:** geïmplementeerd (`_historyEntities()` uitgebreid met de drie
-  waterkwaliteit-metingen), `npm run verify` groen (28/28 tests), docs
-  bijgewerkt (`README.md`, `docs/configuration.md`, `ARCHITECTURE.md`).
-  Meegenomen in PR #6 (github.com/ju1ced/pool-dashboard/pull/6), wacht op
-  visuele bevestiging door de gebruiker samen met POOL-9/POOL-6.
+- **Afgerond:** gemerged via PR #6, gereleased in v0.4.0.
 
 ---
 

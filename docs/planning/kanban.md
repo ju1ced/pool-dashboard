@@ -33,11 +33,7 @@ Geen tickets.
 
 ## Review/validatie
 
-| Ticket                        | Onderwerp                             | Prioriteit | Blokkade                             |
-| ----------------------------- | ------------------------------------- | ---------- | ------------------------------------ |
-| [POOL-9](tickets.md#pool-9)   | Energieverbruik-historiek per toestel | P0         | Wacht op visuele bevestiging (PR #6) |
-| [POOL-6](tickets.md#pool-6)   | Automatiseringen tonen per modus      | P1         | Wacht op visuele bevestiging (PR #6) |
-| [POOL-10](tickets.md#pool-10) | Waterkwaliteit-trends (pH/ORP/zout)   | P1         | Wacht op visuele bevestiging (PR #6) |
+Geen tickets.
 
 ## Klaar
 
@@ -48,6 +44,9 @@ Geen tickets.
 | [POOL-3](tickets.md#pool-3)   | Illustratie + snelle bediening naast elkaar  | P2         |
 | [POOL-4](tickets.md#pool-4)   | Technisch ontwerp seizoensmodus-backend      | P0         |
 | [POOL-22](tickets.md#pool-22) | Warmtepomp-label uitlijning gecorrigeerd     | P2         |
+| [POOL-9](tickets.md#pool-9)   | Energieverbruik-historiek per toestel        | P0         |
+| [POOL-6](tickets.md#pool-6)   | Automatiseringen tonen per modus             | P1         |
+| [POOL-10](tickets.md#pool-10) | Waterkwaliteit-trends (pH/ORP/zout)          | P1         |
 
 ## Geblokkeerd
 
