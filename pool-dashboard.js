@@ -500,34 +500,60 @@ class PoolDashboardCard extends CardBase {
   }
 
   /**
-   * Best-effort, one-shot fetch of the last 7 days of `water_temperature`
-   * history for layer 4. Never blocks rendering: while pending or on error
-   * the history group shows a plain message instead of bars. Not exercised
-   * under Node tests — `hass.callApi` only exists in a real HA frontend.
+   * Entities the history group (layer 4) shows a 7-day bar graph for, each
+   * with its own label/unit. Water temperature plus, where configured, the
+   * power-draw readings added for POOL-9 (filter/heater/salt system) — the
+   * same entities the pool illustration's "Verbruik" badges already use —
+   * and the water-quality readings added for POOL-10 (pH/ORP/zout).
+   */
+  _historyEntities() {
+    const wq = this._config?.water_quality || {};
+    return [
+      { key: this._config?.water_temperature, label: "Watertemperatuur" },
+      { key: this._config?.filter?.power_draw, label: "Filterpomp" },
+      { key: this._config?.heater?.power_draw, label: "Warmtepomp" },
+      { key: this._config?.salt_system_fault, label: "Zoutsysteem" },
+      { key: wq.ph, label: "pH" },
+      { key: wq.orp, label: "ORP" },
+      { key: wq.salinity, label: "Zoutgehalte" },
+    ].filter((e) => e.key);
+  }
+
+  /**
+   * Best-effort, one-shot fetch of the last 7 days of history for each
+   * `_historyEntities()` entry. Never blocks rendering: while pending or on
+   * error that entity's history block shows a plain message instead of
+   * bars, independently of the others. Not exercised under Node tests —
+   * `hass.callApi` only exists in a real HA frontend.
    */
   _maybeLoadHistory() {
-    const entityId = this._config?.water_temperature;
-    if (!entityId) return;
-    if (this._history[entityId] !== undefined) return;
+    const entities = this._historyEntities();
+    if (!entities.length) return;
     if (typeof this._hass?.callApi !== "function") {
-      this._history[entityId] = "unsupported";
+      entities.forEach(({ key }) => {
+        if (this._history[key] === undefined)
+          this._history[key] = "unsupported";
+      });
       return;
     }
-    this._history[entityId] = "pending";
     const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    this._hass
-      .callApi(
-        "GET",
-        `history/period/${since}?filter_entity_id=${entityId}&minimal_response`,
-      )
-      .then((result) => {
-        this._history[entityId] = Array.isArray(result?.[0]) ? result[0] : [];
-        this._render();
-      })
-      .catch(() => {
-        this._history[entityId] = "error";
-        this._render();
-      });
+    entities.forEach(({ key: entityId }) => {
+      if (this._history[entityId] !== undefined) return;
+      this._history[entityId] = "pending";
+      this._hass
+        .callApi(
+          "GET",
+          `history/period/${since}?filter_entity_id=${entityId}&minimal_response`,
+        )
+        .then((result) => {
+          this._history[entityId] = Array.isArray(result?.[0]) ? result[0] : [];
+          this._render();
+        })
+        .catch(() => {
+          this._history[entityId] = "error";
+          this._render();
+        });
+    });
   }
 
   getCardSize() {
@@ -1089,7 +1115,7 @@ class PoolDashboardCard extends CardBase {
             ${this._config.water_quality?.salinity ? badge(58.7, 92.9, this._config.water_quality.salinity, "Zout", salinity) : ""}
             ${this._config.salt_system_fault ? badge(67.8, 92.9, this._config.salt_system_fault, "Verbruik", saltPower) : ""}
 
-            ${equipLabel(83.2, 42, this._config.heater_power, heaterLabel)}
+            ${equipLabel(83.2, 47.4, this._config.heater_power, heaterLabel)}
             ${this._config.target_temperature ? badge(83.2, 76, this._config.target_temperature, "Doel", target, { onDark: true }) : ""}
             ${this._config.heater?.power_draw ? badge(83.2, 85.5, this._config.heater.power_draw, "Verbruik", heaterPower, { onDark: true }) : ""}
           </div>
@@ -1177,6 +1203,42 @@ class PoolDashboardCard extends CardBase {
       </div>`;
   }
 
+  /**
+   * One live-state row, shared by the automations group and the mode
+   * group's per-mode status list. `compact` (the mode group) drops the
+   * summary sub-line and shows a plain aan/uit instead of last-triggered.
+   */
+  _automationRow(entityId, { summary, note, compact = false } = {}) {
+    const obj = this._obj(entityId);
+    const known = !!obj;
+    const on = known && String(obj.state).toLowerCase() === "on";
+    const name =
+      obj?.attributes?.friendly_name || entityId || "Onbekende automatisering";
+    const lastTriggered = obj?.attributes?.last_triggered
+      ? this._formatDateTime(obj.attributes.last_triggered)
+      : "—";
+    return `
+      <div class="auto-row" data-info="${escapeHtml(entityId || "")}">
+        <span class="auto-dot ${known && on ? "" : "off"}"></span>
+        <div class="auto-t">
+          <div class="n">${escapeHtml(name)}</div>
+          ${compact ? "" : `<div class="s">${escapeHtml(summary || (known ? "" : "Onbekend — entity niet gevonden"))}</div>`}
+        </div>
+        ${
+          note
+            ? `<span class="auto-flag">controleren</span>`
+            : `<span class="auto-last">${escapeHtml(known ? (compact ? (on ? "aan" : "uit") : lastTriggered) : "onbekend")}</span>`
+        }
+      </div>`;
+  }
+
+  /**
+   * Zomer/winter/lente/herfst-moduswissel. When `mode.automations` maps the
+   * active mode value to a list of entity ids (POOL-6 — forward-compatible:
+   * meaningless until `mode.select`/`mode.apply_script` name a real
+   * `input_select`/`script`, which this repo does not build, see
+   * AGENTS.md §5), also lists their live on/off state under the buttons.
+   */
   _renderModeGroup() {
     const select = this._config.mode?.select;
     const script = this._config.mode?.apply_script;
@@ -1185,6 +1247,14 @@ class PoolDashboardCard extends CardBase {
     const options = configured
       ? this._obj(select)?.attributes?.options || []
       : [];
+    const modeAutomations =
+      configured && current ? this._config.mode?.automations?.[current] : null;
+    const statusRows =
+      Array.isArray(modeAutomations) && modeAutomations.length
+        ? modeAutomations
+            .map((entityId) => this._automationRow(entityId, { compact: true }))
+            .join("")
+        : "";
 
     return `
       <details class="group" data-group="mode">
@@ -1199,64 +1269,93 @@ class PoolDashboardCard extends CardBase {
                       `<button class="mode-btn ${opt === current ? "active" : ""}" data-mode="${escapeHtml(opt)}">${escapeHtml(opt)}</button>`,
                   )
                   .join("")}
-              </div>`
+              </div>
+              ${
+                statusRows
+                  ? `<div class="section-label" style="margin:12px 0 6px;">Actief bij "${escapeHtml(current)}"</div>${statusRows}`
+                  : ""
+              }`
               : `<p class="meta">Moduswissel niet geconfigureerd — voeg <code>mode.select</code> en <code>mode.apply_script</code> toe aan de kaartconfiguratie om dit te activeren.</p>`
           }
         </div>
       </details>`;
   }
 
+  /**
+   * Read-only automation overview (POOL-6): grouped under each entry's
+   * `group` label when set, in first-seen order, with a live "N actief"
+   * summary. Automations without a `group` render flat, unchanged from
+   * before this grouping existed — a config that never sets `group` looks
+   * exactly as it did.
+   */
   _renderAutomationsGroup() {
     const automations = this._config.automations || [];
     if (!automations.length) return "";
 
-    const rows = automations
-      .map((a) => {
-        const obj = this._obj(a.entity);
-        const known = !!obj;
-        const on = known && String(obj.state).toLowerCase() === "on";
-        const name =
-          obj?.attributes?.friendly_name ||
-          a.entity ||
-          "Onbekende automatisering";
-        const lastTriggered = obj?.attributes?.last_triggered
-          ? this._formatDateTime(obj.attributes.last_triggered)
-          : "—";
-        return `
-          <div class="auto-row" data-info="${escapeHtml(a.entity || "")}">
-            <span class="auto-dot ${known && on ? "" : "off"}"></span>
-            <div class="auto-t">
-              <div class="n">${escapeHtml(name)}</div>
-              <div class="s">${escapeHtml(a.summary || (known ? "" : "Onbekend — entity niet gevonden"))}</div>
-            </div>
-            ${a.note ? `<span class="auto-flag">controleren</span>` : `<span class="auto-last">${escapeHtml(known ? lastTriggered : "onbekend")}</span>`}
-          </div>`;
+    const groupOrder = [];
+    const byGroup = new Map();
+    automations.forEach((a) => {
+      const g = a.group || "";
+      if (!byGroup.has(g)) {
+        byGroup.set(g, []);
+        groupOrder.push(g);
+      }
+      byGroup.get(g).push(a);
+    });
+
+    const activeCount = automations.filter((a) => {
+      const obj = this._obj(a.entity);
+      return obj && String(obj.state).toLowerCase() === "on";
+    }).length;
+
+    const sections = groupOrder
+      .map((g) => {
+        const rows = byGroup
+          .get(g)
+          .map((a) =>
+            this._automationRow(a.entity, { summary: a.summary, note: a.note }),
+          )
+          .join("");
+        return g
+          ? `<div class="auto-group"><div class="auto-group-label">${escapeHtml(g)}</div>${rows}</div>`
+          : rows;
       })
       .join("");
 
     return `
       <details class="group" data-group="automations">
-        <summary>Automatiseringen · ${automations.length} <span class="chev">▶</span></summary>
-        <div class="body">${rows}</div>
+        <summary>Automatiseringen · ${automations.length}<span class="auto-active-count"> · ${activeCount} actief</span> <span class="chev">▶</span></summary>
+        <div class="body">${sections}</div>
       </details>`;
   }
 
   _renderHistoryGroup() {
-    const entityId = this._config.water_temperature;
-    if (!entityId) return "";
-    const entry = this._history?.[entityId];
-    const bars = Array.isArray(entry) ? historyBars(entry) : null;
-    const body =
-      entry === undefined || entry === "pending"
-        ? `<p class="meta">Historiek laden…</p>`
-        : bars
-          ? `<div class="section-label" style="margin-bottom:6px;">Watertemperatuur · 7 dagen</div>
-             <div class="graph">${bars.map((h) => `<i style="height:${Math.max(4, h)}%"></i>`).join("")}</div>`
-          : `<p class="meta">Geen historiek beschikbaar.</p>`;
+    const entities = this._historyEntities();
+    if (!entities.length) return "";
+
+    const blocks = entities
+      .map(({ key, label }) => {
+        const entry = this._history?.[key];
+        const bars = Array.isArray(entry) ? historyBars(entry) : null;
+        const unit = this._obj(key)?.attributes?.unit_of_measurement;
+        const inner =
+          entry === undefined || entry === "pending"
+            ? `<p class="meta">Laden…</p>`
+            : bars
+              ? `<div class="graph">${bars.map((h) => `<i style="height:${Math.max(4, h)}%"></i>`).join("")}</div>`
+              : `<p class="meta">Geen historiek beschikbaar.</p>`;
+        return `
+          <div class="history-block">
+            <div class="section-label" style="margin-bottom:6px;">${escapeHtml(label)}${unit ? ` (${escapeHtml(unit)})` : ""} · 7 dagen</div>
+            ${inner}
+          </div>`;
+      })
+      .join("");
+
     return `
       <details class="group" data-group="history">
         <summary>Historie <span class="chev">▶</span></summary>
-        <div class="body" style="padding-top:10px;">${body}</div>
+        <div class="body" style="padding-top:10px;">${blocks}</div>
       </details>`;
   }
 
@@ -1421,6 +1520,12 @@ class PoolDashboardCard extends CardBase {
       .auto-flag { font-size:10px; background:color-mix(in srgb, var(--pd-warning) 15%, transparent); color:var(--pd-warning);
         border:1px solid color-mix(in srgb, var(--pd-warning) 30%, transparent); padding:2px 7px; border-radius:99px; flex:none; }
       .auto-last { font-size:10.5px; color:var(--pd-text-muted); flex:none; text-align:right; }
+      .auto-group { margin-top:10px; }
+      .auto-group:first-child { margin-top:0; }
+      .auto-group-label { font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--pd-text-muted);
+        padding-top:10px; }
+      .auto-group .auto-row:first-child { border-top:0; margin-top:2px; }
+      summary .auto-active-count { color:var(--pd-text-muted); font-weight:400; }
 
       .mode-row { display:flex; gap:6px; margin-top:10px; }
       .mode-btn { flex:1; text-align:center; padding:9px 6px; border-radius:10px; font-size:11.5px; font-weight:700;
@@ -1433,6 +1538,7 @@ class PoolDashboardCard extends CardBase {
       .settings-row .v { font-weight:600; font-variant-numeric:tabular-nums; }
       .settings-row .v.unavail { color:var(--pd-text-muted); font-style:italic; font-weight:400; }
 
+      .history-block + .history-block { margin-top:14px; }
       .graph { height:64px; display:flex; align-items:flex-end; gap:3px; background:var(--pd-bg-raised);
         border:1px solid var(--pd-border); border-radius:10px; padding:8px 8px 6px; }
       .graph i { flex:1; border-radius:2px 2px 0 0;

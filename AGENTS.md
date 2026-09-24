@@ -98,3 +98,20 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   banners moved to render right after the status banner (previously
   between the illustration and the controls, which no longer works once
   those two share a row).
+- Fase 4 (roadmap, tracked at
+  <https://claude.ai/artifact/PXEph9FvbDzqHbk2eCN7sc>): POOL-9 — Historie
+  group now shows a 7-day bar graph per configured power sensor
+  (`filter.power_draw`, `heater.power_draw`, `salt_system_fault`), not
+  just water temperature, reusing the existing `historyBars()`/history-API
+  fetch, generalized to a list via `_historyEntities()`. POOL-6 —
+  `automations[].group` is now actually rendered (sub-headings, first-seen
+  order) instead of being reserved-but-unused, plus a live "N actief"
+  count in the group summary; and a new optional `mode.automations` map
+  lets the mode group list a mode's own automations' on/off state — this
+  half is forward-built and NOT live-testable yet, since it only renders
+  once `mode.select`/`mode.apply_script` name real entities, which needs
+  the still-unapproved §5 backend (POOL-5).
+- POOL-10 — `_historyEntities()` also lists the configured water-quality
+  readings (`water_quality.ph`, `water_quality.orp`, `water_quality.salinity`),
+  so the Historie group now shows a 7-day bar graph for those too, same
+  best-effort per-entity fetch/render as the POOL-9 power sensors.
