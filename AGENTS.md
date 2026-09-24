@@ -115,3 +115,9 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   readings (`water_quality.ph`, `water_quality.orp`, `water_quality.salinity`),
   so the Historie group now shows a 7-day bar graph for those too, same
   best-effort per-entity fetch/render as the POOL-9 power sensors.
+- v0.4.0 released (2026-09-24): POOL-9, POOL-6 and POOL-10 merged via PR #6.
+- POOL-11 — new optional top-level `comfort_score` field, rendered as a
+  display-only row in **Instellingen & diagnostiek** via the existing
+  `settingRow()`/`_measure()` helpers. Reads whatever value an existing HA
+  automation already computes; the card never derives or synthesizes a
+  score itself.

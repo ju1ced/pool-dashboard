@@ -270,6 +270,7 @@ function collectEntityIds(config) {
   add(config?.has_error);
   add(config?.salt_system_fault);
   add(config?.swim_mode);
+  add(config?.comfort_score);
   Object.values(config?.filter || {}).forEach(add);
   Object.values(config?.heater || {}).forEach(add);
   Object.values(config?.salt_system || {}).forEach((v) => {
@@ -1371,6 +1372,7 @@ class PoolDashboardCard extends CardBase {
       <details class="group" data-group="settings">
         <summary>Instellingen &amp; diagnostiek <span class="chev">▶</span></summary>
         <div class="body">
+          ${settingRow(this._config.comfort_score, "Comfortscore", { digits: 0, unitOverride: "/ 100" })}
           ${settingRow(wq.ph_setpoint, "pH-setpoint")}
           ${settingRow(wq.orp_setpoint, "ORP-setpoint", { unitOverride: "mV" })}
           ${settingRow(this._config.salt_system?.chlorination_level, "Chlorinatie", { unitOverride: "%" })}
