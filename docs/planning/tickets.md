@@ -217,6 +217,12 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   (datum-opslag) — scope-check vooraf, mogelijk buiten wat de kaart alleen
   kan oplossen.
 - **Acceptatiecriteria:** nog te bepalen na scope-check.
+- **Voortgang:** scope-check afgerond via read-only MCP-check — geen
+  bestaande entiteit voor zoutcel-levensduur, filterreinigingsdatum of
+  onderhoud in het algemeen. Vereist eerst nieuwe HA-helpers (bv.
+  `input_datetime`/`input_number`), wat buiten de scope van deze kaart-repo
+  op zich valt — vereist een aparte, expliciete aanvraag (zie `AGENTS.md`).
+  Blijft in de backlog zonder verdere kaart-actie tot die helpers bestaan.
 
 ---
 
