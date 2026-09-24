@@ -7,20 +7,16 @@ Kanban-bord-Artifact — zie `AGENTS.md`/changelog voor de aanleiding.
 
 ## Backlog
 
-| Ticket                        | Onderwerp                                | Prioriteit | Afhankelijkheid                       |
-| ----------------------------- | ---------------------------------------- | ---------- | ------------------------------------- |
-| [POOL-7](tickets.md#pool-7)   | Modus-indicator op de illustratie        | P1         | Weinig waarde vóór POOL-5             |
-| [POOL-8](tickets.md#pool-8)   | Vorstbeveiliging expliciet zichtbaar     | P1         | Weinig waarde vóór POOL-5             |
-| [POOL-14](tickets.md#pool-14) | Weersvoorspelling-context tonen          | P1         | MCP-check nodig                       |
-| [POOL-15](tickets.md#pool-15) | PV/zonne-optimalisatie zichtbaar maken   | P1         | MCP-check nodig                       |
-| [POOL-16](tickets.md#pool-16) | Meldingen/alerts-voorkeuren              | P1         | Scope-check (mogelijk HA-zijde)       |
-| [POOL-12](tickets.md#pool-12) | Kostenraming op energieprijs             | P2         | POOL-9 (klaar), MCP-check             |
-| [POOL-13](tickets.md#pool-13) | Onderhoud-/verbruiksartikelen-tracking   | P2         | Scope-check (mogelijk nieuwe helpers) |
-| [POOL-17](tickets.md#pool-17) | pH/ORP-setpoints instelbaar maken        | P2         | Schrijfbare setpoint-entiteiten       |
-| [POOL-18](tickets.md#pool-18) | Canonieke watertemperatuur-sensor        | P0         | HA-zijde — aparte aanvraag nodig      |
-| [POOL-19](tickets.md#pool-19) | Dode helper opruimen                     | P2         | HA-zijde — aparte aanvraag nodig      |
-| [POOL-20](tickets.md#pool-20) | Automatiseringsconflicten oplossen       | P0         | HA-zijde — aparte aanvraag nodig      |
-| [POOL-21](tickets.md#pool-21) | Warmtepomp-vermogenskoppeling bevestigen | P2         | HA-zijde — aparte aanvraag nodig      |
+| Ticket                        | Onderwerp                                | Prioriteit | Afhankelijkheid                                                           |
+| ----------------------------- | ---------------------------------------- | ---------- | ------------------------------------------------------------------------- |
+| [POOL-7](tickets.md#pool-7)   | Modus-indicator op de illustratie        | P1         | Weinig waarde vóór POOL-5                                                 |
+| [POOL-8](tickets.md#pool-8)   | Vorstbeveiliging expliciet zichtbaar     | P1         | Weinig waarde vóór POOL-5                                                 |
+| [POOL-16](tickets.md#pool-16) | Meldingen/alerts-voorkeuren              | P1         | Herbeoordeeld: geen goede fit voor een kaart, hoort bij HA-automatisering |
+| [POOL-13](tickets.md#pool-13) | Onderhoud-/verbruiksartikelen-tracking   | P2         | Scope-check (mogelijk nieuwe helpers)                                     |
+| [POOL-18](tickets.md#pool-18) | Canonieke watertemperatuur-sensor        | P0         | HA-zijde — aparte aanvraag nodig                                          |
+| [POOL-19](tickets.md#pool-19) | Dode helper opruimen                     | P2         | HA-zijde — aparte aanvraag nodig                                          |
+| [POOL-20](tickets.md#pool-20) | Automatiseringsconflicten oplossen       | P0         | HA-zijde — aparte aanvraag nodig                                          |
+| [POOL-21](tickets.md#pool-21) | Warmtepomp-vermogenskoppeling bevestigen | P2         | HA-zijde — aparte aanvraag nodig                                          |
 
 ## Gepland
 
@@ -32,9 +28,13 @@ Geen tickets.
 
 ## Review/validatie
 
-| Ticket                        | Onderwerp                | Prioriteit | Blokkade                             |
-| ----------------------------- | ------------------------ | ---------- | ------------------------------------ |
-| [POOL-11](tickets.md#pool-11) | Comfortscore in de kaart | P1         | Wacht op visuele bevestiging (PR #7) |
+| Ticket                        | Onderwerp                                     | Prioriteit | Blokkade                             |
+| ----------------------------- | --------------------------------------------- | ---------- | ------------------------------------ |
+| [POOL-11](tickets.md#pool-11) | Comfortscore in de kaart                      | P1         | Wacht op visuele bevestiging (PR #7) |
+| [POOL-17](tickets.md#pool-17) | pH/ORP-setpoints instelbaar maken             | P2         | Wacht op visuele bevestiging (PR #8) |
+| [POOL-12](tickets.md#pool-12) | Kostenraming op energieprijs                  | P2         | Wacht op visuele bevestiging (PR #8) |
+| [POOL-15](tickets.md#pool-15) | PV/zonne-optimalisatie zichtbaar maken        | P1         | Wacht op visuele bevestiging (PR #8) |
+| [POOL-14](tickets.md#pool-14) | Weersvoorspelling-context tonen (afgeschaald) | P1         | Wacht op visuele bevestiging (PR #8) |
 
 ## Klaar
 
