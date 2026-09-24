@@ -397,3 +397,35 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 - **Afhankelijkheden:** POOL-2.
 - **Acceptatiecriteria:** label visueel correct gepositioneerd boven het
   toestel, in beide thema's.
+
+---
+
+<a id="pool-23"></a>
+
+## POOL-23 — Instellingen & diagnostiek opdelen in subsecties
+
+**Status:** Backlog · **Prioriteit:** P2 · **Epic:** Kaart-UX
+
+- **Scope:** `_renderSettingsGroup()` groepeert zijn rijen in vier
+  subsecties (Automatisch bijgewerkt, Waterkwaliteit, Verbruikskost,
+  Warmtepomp diagnostiek) i.p.v. één platte lijst. Na POOL-11/12/14/15/17
+  is die lijst gegroeid naar 14+ rijen door elkaar (comfortscore,
+  PV-modus, tijdstippen, setpoints, kostenramingen, warmtepomp-diagnostiek
+  allemaal gemengd) — de "overzichtelijk"-eis begint daar zichtbaar te
+  breken. Geen wijziging aan het entity-key-contract, geen nieuwe
+  afhankelijkheden, geen impact op illustratie/Snelle bediening/Historie/
+  Automatiseringen.
+- **Afhankelijkheden:** geen — puur een render-herstructurering van
+  bestaande en al-geplande velden (POOL-11/12/14/15/17).
+- **Acceptatiecriteria:** dezelfde rijen als vandaag, nu onder vier
+  `.subgroup`-wrappers met een `.section-label`-kopje per sectie (zelfde
+  patroon als de Historie-groep al gebruikt); `npm run verify` groen;
+  visuele bevestiging door de gebruiker tegen de mockup vóór het gemerged
+  wordt (zelfde flow als de illustratie-mockups).
+- **Ontwerp:** mockup (huidige platte lijst vs. voorgestelde subsecties,
+  licht + donker thema, kaart-eigen kleurtokens) —
+  <https://claude.ai/artifact/ShfeftGuV3SUBLDD2SiU6e>. Voorgesteld na
+  onderzoek dat concludeerde dat een volledige layout-overhaul niet
+  gerechtvaardigd is (de hero-row en de vier groepen doorliepen al een
+  eigen, goedgekeurd ontwerpproces in v0.3.3) — enkel deze groep is echt
+  gegroeid tot een probleem.

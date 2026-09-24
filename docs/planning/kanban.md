@@ -7,16 +7,17 @@ Kanban-bord-Artifact — zie `AGENTS.md`/changelog voor de aanleiding.
 
 ## Backlog
 
-| Ticket                        | Onderwerp                                | Prioriteit | Afhankelijkheid                                                           |
-| ----------------------------- | ---------------------------------------- | ---------- | ------------------------------------------------------------------------- |
-| [POOL-7](tickets.md#pool-7)   | Modus-indicator op de illustratie        | P1         | Weinig waarde vóór POOL-5                                                 |
-| [POOL-8](tickets.md#pool-8)   | Vorstbeveiliging expliciet zichtbaar     | P1         | Weinig waarde vóór POOL-5                                                 |
-| [POOL-16](tickets.md#pool-16) | Meldingen/alerts-voorkeuren              | P1         | Herbeoordeeld: geen goede fit voor een kaart, hoort bij HA-automatisering |
-| [POOL-13](tickets.md#pool-13) | Onderhoud-/verbruiksartikelen-tracking   | P2         | Scope-check (mogelijk nieuwe helpers)                                     |
-| [POOL-18](tickets.md#pool-18) | Canonieke watertemperatuur-sensor        | P0         | HA-zijde — aparte aanvraag nodig                                          |
-| [POOL-19](tickets.md#pool-19) | Dode helper opruimen                     | P2         | HA-zijde — aparte aanvraag nodig                                          |
-| [POOL-20](tickets.md#pool-20) | Automatiseringsconflicten oplossen       | P0         | HA-zijde — aparte aanvraag nodig                                          |
-| [POOL-21](tickets.md#pool-21) | Warmtepomp-vermogenskoppeling bevestigen | P2         | HA-zijde — aparte aanvraag nodig                                          |
+| Ticket                        | Onderwerp                                        | Prioriteit | Afhankelijkheid                                                           |
+| ----------------------------- | ------------------------------------------------ | ---------- | ------------------------------------------------------------------------- |
+| [POOL-7](tickets.md#pool-7)   | Modus-indicator op de illustratie                | P1         | Weinig waarde vóór POOL-5                                                 |
+| [POOL-8](tickets.md#pool-8)   | Vorstbeveiliging expliciet zichtbaar             | P1         | Weinig waarde vóór POOL-5                                                 |
+| [POOL-16](tickets.md#pool-16) | Meldingen/alerts-voorkeuren                      | P1         | Herbeoordeeld: geen goede fit voor een kaart, hoort bij HA-automatisering |
+| [POOL-23](tickets.md#pool-23) | Instellingen & diagnostiek opdelen in subsecties | P2         | Mockup klaar, wacht op goedkeuring vóór implementatie                     |
+| [POOL-13](tickets.md#pool-13) | Onderhoud-/verbruiksartikelen-tracking           | P2         | Scope-check (mogelijk nieuwe helpers)                                     |
+| [POOL-18](tickets.md#pool-18) | Canonieke watertemperatuur-sensor                | P0         | HA-zijde — aparte aanvraag nodig                                          |
+| [POOL-19](tickets.md#pool-19) | Dode helper opruimen                             | P2         | HA-zijde — aparte aanvraag nodig                                          |
+| [POOL-20](tickets.md#pool-20) | Automatiseringsconflicten oplossen               | P0         | HA-zijde — aparte aanvraag nodig                                          |
+| [POOL-21](tickets.md#pool-21) | Warmtepomp-vermogenskoppeling bevestigen         | P2         | HA-zijde — aparte aanvraag nodig                                          |
 
 ## Gepland
 
