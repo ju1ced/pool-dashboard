@@ -18,6 +18,9 @@ includes, themes, Mushroom, card-mod or any other custom cards required.
 - Read-only automation overview (state, last-triggered, author-time summary)
 - 7-day history graphs (collapsed by default): water temperature, plus any
   configured power-draw and water-quality (pH/ORP/salinity) sensors
+- Writable pH/ORP setpoints when mapped to a settable entity, plus optional
+  PV-mode display and a live estimated running cost per device when an
+  energy-price entity is configured
 - Graceful handling of missing, `unknown` and `unavailable` entities
 - Responsive from wide desktop dashboards down to ~360 px phones
 - Follows Home Assistant's own light/dark theme — no toggle of its own

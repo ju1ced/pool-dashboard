@@ -8,22 +8,25 @@ temperature.
 
 ## Top-level fields
 
-| Field                 | Type    | Required | Description                                                                                                                                                                                                   |
-| --------------------- | ------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `type`                | string  | yes      | Must be `custom:pool-dashboard-card`.                                                                                                                                                                         |
-| `title`               | string  | no       | Card heading (default `Zwembad`).                                                                                                                                                                             |
-| `status`              | entity  | no       | Optional status sensor. Currently used only as an extra required-field check for the "unavailable" state — the card always derives its own status label.                                                      |
-| `water_temperature`   | entity  | yes      | Pool water temperature. **Map this to the same sensor your heater automations use.**                                                                                                                          |
-| `target_temperature`  | entity  | yes      | Target temperature, `number.*` or `input_number.*` so the stepper can write it.                                                                                                                               |
-| `ambient_temperature` | entity  | yes      | Outside/air temperature, shown as an informational badge on the pool illustration.                                                                                                                            |
-| `heater_power`        | entity  | yes      | Heat pump on/off, `switch.*` or `input_boolean.*`.                                                                                                                                                            |
-| `has_error`           | entity  | no       | Heat pump fault flag (`binary_sensor.*`). `on` → critical status.                                                                                                                                             |
-| `salt_system_fault`   | entity  | no       | Salt system power-draw sensor. Used with `salt_system.fault_below_watts` for a simple flow-fault indicator (see below), and shown as the salt system's "Verbruik" badge on the pool illustration.             |
-| `swim_mode`           | entity  | no       | Swim-mode helper (`input_boolean.*`). Toggling it in the card turns filter + salt system off temporarily (see "Quick controls").                                                                              |
-| `comfort_score`       | entity  | no       | Display-only comfort score (0-100, `input_number.*`/`sensor.*`), shown as a row in **Instellingen**. Reads whatever value an existing automation already computes — the card never derives or synthesizes it. |
-| `confirm_actions`     | boolean | no       | Ask for confirmation before actions (default `true`).                                                                                                                                                         |
-| `theme_mode`          | string  | no       | `system` (default, follows the active HA theme) \| `light` \| `dark`. See below.                                                                                                                              |
-| `layout_options`      | object  | no       | Sections dashboard sizing (`grid_columns`, `grid_rows`).                                                                                                                                                      |
+| Field                        | Type    | Required | Description                                                                                                                                                                                                                                                                |
+| ---------------------------- | ------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`                       | string  | yes      | Must be `custom:pool-dashboard-card`.                                                                                                                                                                                                                                      |
+| `title`                      | string  | no       | Card heading (default `Zwembad`).                                                                                                                                                                                                                                          |
+| `status`                     | entity  | no       | Optional status sensor. Currently used only as an extra required-field check for the "unavailable" state — the card always derives its own status label.                                                                                                                   |
+| `water_temperature`          | entity  | yes      | Pool water temperature. **Map this to the same sensor your heater automations use.**                                                                                                                                                                                       |
+| `target_temperature`         | entity  | yes      | Target temperature, `number.*` or `input_number.*` so the stepper can write it.                                                                                                                                                                                            |
+| `ambient_temperature`        | entity  | yes      | Outside/air temperature, shown as an informational badge on the pool illustration.                                                                                                                                                                                         |
+| `heater_power`               | entity  | yes      | Heat pump on/off, `switch.*` or `input_boolean.*`.                                                                                                                                                                                                                         |
+| `has_error`                  | entity  | no       | Heat pump fault flag (`binary_sensor.*`). `on` → critical status.                                                                                                                                                                                                          |
+| `salt_system_fault`          | entity  | no       | Salt system power-draw sensor. Used with `salt_system.fault_below_watts` for a simple flow-fault indicator (see below), and shown as the salt system's "Verbruik" badge on the pool illustration.                                                                          |
+| `swim_mode`                  | entity  | no       | Swim-mode helper (`input_boolean.*`). Toggling it in the card turns filter + salt system off temporarily (see "Quick controls").                                                                                                                                           |
+| `comfort_score`              | entity  | no       | Display-only comfort score (0-100, `input_number.*`/`sensor.*`), shown as a row in **Instellingen**. Reads whatever value an existing automation already computes — the card never derives or synthesizes it.                                                              |
+| `pv_mode`                    | entity  | no       | Display-only PV/solar-optimalisatie flag, shown as-is in **Instellingen**. Reads whatever an existing HA automation already sets; the card never derives PV/solar logic itself.                                                                                            |
+| `target_temperature_updated` | entity  | no       | Display-only timestamp of when `target_temperature` was last automatically adjusted (e.g. by a weather-forecast automation), shown in **Instellingen**. Shows the "when", not the "why".                                                                                   |
+| `energy_price`               | entity  | no       | Current energy price (currency/kWh). When set, **Instellingen** shows a pure, no-guessing instantaneous running-cost estimate (power × price) for each configured power-draw sensor — never a cumulative total, and nothing renders unless both readings are live numbers. |
+| `confirm_actions`            | boolean | no       | Ask for confirmation before actions (default `true`).                                                                                                                                                                                                                      |
+| `theme_mode`                 | string  | no       | `system` (default, follows the active HA theme) \| `light` \| `dark`. See below.                                                                                                                                                                                           |
+| `layout_options`             | object  | no       | Sections dashboard sizing (`grid_columns`, `grid_rows`).                                                                                                                                                                                                                   |
 
 ## `filter`
 
@@ -71,11 +74,13 @@ some installs (see `docs/troubleshooting.md`).
 
 All optional, shown as badges on the pool illustration (layer 1) and setpoints
 (layer 5, settings):
-`ph`, `ph_setpoint`, `orp`, `orp_setpoint`, `salinity`. `ph_setpoint` and
-`orp_setpoint` must be `number.*` to be settable in a future revision — today
-they are display-only in **Instellingen**. `ph`, `orp` and `salinity` each
-also get a 7-day bar graph in the **Historie** group when configured, same
-as the power-draw sensors under `filter`/`heater`.
+`ph`, `ph_setpoint`, `orp`, `orp_setpoint`, `salinity`. When `ph_setpoint`/
+`orp_setpoint` are `number.*` or `input_number.*`, **Instellingen** shows a
++/− stepper that writes them directly (POOL-17), the same domain-safe
+`set_value` path as the target-temperature stepper; any other domain falls
+back to a plain display-only row. `ph`, `orp` and `salinity` each also get a
+7-day bar graph in the **Historie** group when configured, same as the
+power-draw sensors under `filter`/`heater`.
 
 ## `mode` — season/winter switch (opt-in, requires backend)
 
