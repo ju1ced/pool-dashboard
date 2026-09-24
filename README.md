@@ -16,7 +16,8 @@ includes, themes, Mushroom, card-mod or any other custom cards required.
 - Season/winter mode block — **opt-in and disabled by default**; see
   [docs/configuration.md](docs/configuration.md#mode--seasonwinter-switch-opt-in-requires-backend)
 - Read-only automation overview (state, last-triggered, author-time summary)
-- 7-day water temperature history graph (collapsed by default)
+- 7-day history graphs (collapsed by default): water temperature, plus any
+  configured power-draw and water-quality (pH/ORP/salinity) sensors
 - Graceful handling of missing, `unknown` and `unavailable` entities
 - Responsive from wide desktop dashboards down to ~360 px phones
 - Follows Home Assistant's own light/dark theme — no toggle of its own

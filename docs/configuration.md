@@ -72,7 +72,9 @@ All optional, shown as badges on the pool illustration (layer 1) and setpoints
 (layer 5, settings):
 `ph`, `ph_setpoint`, `orp`, `orp_setpoint`, `salinity`. `ph_setpoint` and
 `orp_setpoint` must be `number.*` to be settable in a future revision — today
-they are display-only in **Instellingen**.
+they are display-only in **Instellingen**. `ph`, `orp` and `salinity` each
+also get a 7-day bar graph in the **Historie** group when configured, same
+as the power-draw sensors under `filter`/`heater`.
 
 ## `mode` — season/winter switch (opt-in, requires backend)
 

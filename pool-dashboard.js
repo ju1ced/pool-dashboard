@@ -503,14 +503,19 @@ class PoolDashboardCard extends CardBase {
    * Entities the history group (layer 4) shows a 7-day bar graph for, each
    * with its own label/unit. Water temperature plus, where configured, the
    * power-draw readings added for POOL-9 (filter/heater/salt system) — the
-   * same entities the pool illustration's "Verbruik" badges already use.
+   * same entities the pool illustration's "Verbruik" badges already use —
+   * and the water-quality readings added for POOL-10 (pH/ORP/zout).
    */
   _historyEntities() {
+    const wq = this._config?.water_quality || {};
     return [
       { key: this._config?.water_temperature, label: "Watertemperatuur" },
       { key: this._config?.filter?.power_draw, label: "Filterpomp" },
       { key: this._config?.heater?.power_draw, label: "Warmtepomp" },
       { key: this._config?.salt_system_fault, label: "Zoutsysteem" },
+      { key: wq.ph, label: "pH" },
+      { key: wq.orp, label: "ORP" },
+      { key: wq.salinity, label: "Zoutgehalte" },
     ].filter((e) => e.key);
   }
 

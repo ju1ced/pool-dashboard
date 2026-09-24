@@ -141,15 +141,20 @@ needed — clicks always resolve to a single, immediate service call.
 
 ## History (layer 4)
 
-`water_temperature`'s last 7 days are fetched once per card lifetime via
+`_historyEntities()` lists every entity the group shows a graph for:
+`water_temperature`, the configured power-draw sensors
+(`filter.power_draw`, `heater.power_draw`, `salt_system_fault` — POOL-9),
+and the configured water-quality readings (`water_quality.ph/orp/salinity`
+— POOL-10). Each entity's last 7 days is fetched once per card lifetime via
 `hass.callApi("GET", "history/period/...")` and reduced to bar heights by
-the pure, tested `historyBars` helper (bucket-averaged, normalized 0-100,
-returns `null` when fewer than two numeric points exist). The fetch is
-best-effort: while pending or on error the group shows a plain message
-instead of bars, and nothing about it blocks the rest of the card from
-rendering. This code path only runs against a real HA frontend — `callApi`
-does not exist under the Node unit tests, so it is exercised through manual
-testing (`docs/home-assistant-testing.md`), not `node --test`.
+the pure, tested `historyBars` helper (bucket-averaged, normalized 0-100
+per entity, returns `null` when fewer than two numeric points exist). The
+fetch is best-effort and per-entity: while pending or on error that
+entity's block shows a plain message instead of bars, independently of the
+others, and nothing about it blocks the rest of the card from rendering.
+This code path only runs against a real HA frontend — `callApi` does not
+exist under the Node unit tests, so it is exercised through manual testing
+(`docs/home-assistant-testing.md`), not `node --test`.
 
 ## Sections dashboard support
 

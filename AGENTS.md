@@ -111,3 +111,7 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   half is forward-built and NOT live-testable yet, since it only renders
   once `mode.select`/`mode.apply_script` name real entities, which needs
   the still-unapproved §5 backend (POOL-5).
+- POOL-10 — `_historyEntities()` also lists the configured water-quality
+  readings (`water_quality.ph`, `water_quality.orp`, `water_quality.salinity`),
+  so the Historie group now shows a 7-day bar graph for those too, same
+  best-effort per-entity fetch/render as the POOL-9 power sensors.
