@@ -172,7 +172,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-11 — Comfortscore zichtbaar maken in de kaart
 
-**Status:** Review/validatie · **Prioriteit:** P1 · **Epic:** Historiek & statistieken
+**Status:** Klaar · **Prioriteit:** P1 · **Epic:** Historiek & statistieken
 
 - **Scope:** er bestaat al een Home Assistant-automatisering die een
   comfortscore berekent, maar die wordt nergens in de kaart getoond.
@@ -181,12 +181,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   en of die betrouwbaar gevuld wordt.
 - **Acceptatiecriteria:** score zichtbaar in de kaart met correcte
   eenheid/schaal; graceful handling wanneer de bron-entiteit onbeschikbaar is.
-- **Voortgang:** MCP-check bevestigde de bron-entiteit (een `input_number`,
-  schaal 0-100, geschreven door een bestaande automatisering). Nieuw
-  optioneel `comfort_score`-veld toegevoegd, gerenderd als rij in
-  Instellingen & diagnostiek. `npm run verify` groen. PR open:
-  github.com/ju1ced/pool-dashboard/pull/7. Wacht op visuele bevestiging
-  door de gebruiker — geen tussentijdse release.
+- **Afgerond:** gemerged via PR #7.
 
 ---
 
@@ -194,7 +189,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-12 — Kostenraming op basis van energieprijs
 
-**Status:** Review/validatie · **Prioriteit:** P2 · **Epic:** Historiek & statistieken
+**Status:** Klaar · **Prioriteit:** P2 · **Epic:** Historiek & statistieken
 
 - **Scope:** indien een energieprijs-entiteit beschikbaar is: geschatte kost
   van filter/warmtepomp/zoutsysteem-verbruik tonen.
@@ -203,12 +198,10 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 - **Acceptatiecriteria:** kostenraming verschijnt enkel wanneer zowel
   verbruiks- als prijs-entiteit geconfigureerd zijn; geen gok-waarde tonen
   bij ontbrekende data.
-- **Voortgang:** generiek `energy_price`-veld (i.p.v. te gokken op één
+- **Afgerond:** generiek `energy_price`-veld (i.p.v. te gokken op één
   specifieke, ambigue prijssensor) + pure `estimatedCostPerHour()`-helper
   (vermogen × prijs), gerenderd per verbruikssensor in Instellingen — enkel
-  wanneer beide waarden live getallen zijn. `npm run verify` groen. PR
-  open: github.com/ju1ced/pool-dashboard/pull/8. Wacht op visuele
-  bevestiging door de gebruiker.
+  wanneer beide waarden live getallen zijn. Gemerged via PR #8.
 
 ---
 
@@ -231,7 +224,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-14 — Weersvoorspelling-context tonen
 
-**Status:** Review/validatie (afgeschaald na MCP-check) · **Prioriteit:** P1 · **Epic:** Kaart-UX
+**Status:** Klaar (afgeschaald na MCP-check) · **Prioriteit:** P1 · **Epic:** Kaart-UX
 
 - **Scope:** er bestaat al een Home Assistant-automatisering die de
   doeltemperatuur herberekent op basis van een meerdaagse weersvoorspelling
@@ -241,7 +234,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 - **Acceptatiecriteria:** korte, leesbare toelichting in de kaart (bv. "doel
   aangepast op basis van voorspelling") zonder de volledige automatisering
   te dupliceren.
-- **Voortgang:** MCP-check toonde dat de automatisering haar redenering
+- **Afgerond:** MCP-check toonde dat de automatisering haar redenering
   enkel transiënt logt (logbook/notification), niet ergens leesbaar voor
   de kaart — de Jinja-logica dupliceren zou de bestaande
   no-duplication-designbeslissing schenden, en de redenering laten
@@ -249,8 +242,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   vereist. Enkel het eerlijke deel gebouwd: een optioneel
   `target_temperature_updated`-tijdstip, display-only — het "wanneer",
   niet het "waarom". Volledige redenering-weergave blijft backlog, wacht
-  op die HA-wijziging. `npm run verify` groen. PR open:
-  github.com/ju1ced/pool-dashboard/pull/8.
+  op die HA-wijziging. Gemerged via PR #8.
 
 ---
 
@@ -258,7 +250,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-15 — PV/zonne-optimalisatie zichtbaar maken
 
-**Status:** Review/validatie · **Prioriteit:** P1 · **Epic:** Kaart-UX
+**Status:** Klaar · **Prioriteit:** P1 · **Epic:** Kaart-UX
 
 - **Scope:** er bestaat al een Home Assistant-automatisering die de
   filtertiming stuurt op basis van een zonneprognose — de huidige PV-modus
@@ -267,11 +259,9 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   entiteit de PV-modus-vlag bevat.
 - **Acceptatiecriteria:** PV-modus zichtbaar in de kaart (aan/uit + korte
   toelichting), zonder de forecast-logica zelf te dupliceren.
-- **Voortgang:** MCP-check bevestigde de bron-helper. Nieuw optioneel
+- **Afgerond:** MCP-check bevestigde de bron-helper. Nieuw optioneel
   `pv_mode`-veld, display-only in Instellingen — de kaart leidt zelf geen
-  PV-logica af. `npm run verify` groen. PR open:
-  github.com/ju1ced/pool-dashboard/pull/8. Wacht op visuele bevestiging
-  door de gebruiker.
+  PV-logica af. Gemerged via PR #8.
 
 ---
 
@@ -300,7 +290,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-17 — pH/ORP-setpoints instelbaar maken vanuit de kaart
 
-**Status:** Review/validatie · **Prioriteit:** P2 · **Epic:** Kaart-UX
+**Status:** Klaar · **Prioriteit:** P2 · **Epic:** Kaart-UX
 
 - **Scope:** vandaag enkel display-only in Instellingen (zie
   `docs/configuration.md`) — setpoints rechtstreeks aanpasbaar maken.
@@ -309,14 +299,12 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 - **Acceptatiecriteria:** setpoint-wijziging vanuit de kaart roept de
   domain-safe `number.set_value` aan, met dezelfde bevestigingslogica als
   andere schrijvende acties.
-- **Voortgang:** MCP-check bevestigde dat de echte pH/ORP-setpoints al
+- **Afgerond:** MCP-check bevestigde dat de echte pH/ORP-setpoints al
   schrijfbare `number.*`-entiteiten zijn. Nieuwe +/− stepper in
   Instellingen (`_adjustSetpoint()`/`_adjustNumber()`), zelfde
   domain-safe `_setNumber()`-schrijfweg als de bestaande
   doeltemperatuur-stepper; valt terug op de gewone weergaverij voor elk
-  ander domein. `npm run verify` groen. PR open:
-  github.com/ju1ced/pool-dashboard/pull/8. Wacht op visuele bevestiging
-  door de gebruiker.
+  ander domein. Gemerged via PR #8.
 
 ---
 
@@ -404,7 +392,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-23 — Instellingen & diagnostiek opdelen in subsecties
 
-**Status:** Backlog · **Prioriteit:** P2 · **Epic:** Kaart-UX
+**Status:** Review/validatie · **Prioriteit:** P2 · **Epic:** Kaart-UX
 
 - **Scope:** `_renderSettingsGroup()` groepeert zijn rijen in vier
   subsecties (Automatisch bijgewerkt, Waterkwaliteit, Verbruikskost,
@@ -429,3 +417,14 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   gerechtvaardigd is (de hero-row en de vier groepen doorliepen al een
   eigen, goedgekeurd ontwerpproces in v0.3.3) — enkel deze groep is echt
   gegroeid tot een probleem.
+- **Voortgang:** volledig 4-subsecties-ontwerp geïmplementeerd (Automatisch
+  bijgewerkt, Waterkwaliteit, Verbruikskost, Warmtepomp diagnostiek) — PR
+  #7 en #8 waren intussen gemerged naar `main`, dus deze branch is erop
+  gerebaset en alle rijen (comfortscore, PV-modus,
+  doeltemperatuur-tijdstip, verbruikskost, schrijfbare setpoints) zijn
+  meteen in de juiste subsectie geplaatst i.p.v. een kleinere,
+  tussentijdse versie. Node-simulatie bevestigt correcte subgroep-markup
+  en graceful-empty-gedrag voor zowel de volledige als een minimale
+  config. `npm run verify` groen. PR open:
+  github.com/ju1ced/pool-dashboard/pull/9. Wacht op visuele bevestiging
+  door de gebruiker tegen de mockup.
