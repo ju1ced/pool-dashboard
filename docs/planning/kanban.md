@@ -33,11 +33,11 @@ Geen tickets.
 
 ## Review/validatie
 
-| Ticket                        | Onderwerp                             | Prioriteit | Blokkade                                                                                            |
-| ----------------------------- | ------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------- |
-| [POOL-9](tickets.md#pool-9)   | Energieverbruik-historiek per toestel | P0         | Wacht op visuele bevestiging (PR #6)                                                                |
-| [POOL-6](tickets.md#pool-6)   | Automatiseringen tonen per modus      | P1         | Wacht op visuele bevestiging (PR #6)                                                                |
-| [POOL-10](tickets.md#pool-10) | Waterkwaliteit-trends (pH/ORP/zout)   | P1         | Geïmplementeerd, `npm run verify` groen, nog niet gecommit — wacht op keuze PR #6 vs. nieuwe branch |
+| Ticket                        | Onderwerp                             | Prioriteit | Blokkade                             |
+| ----------------------------- | ------------------------------------- | ---------- | ------------------------------------ |
+| [POOL-9](tickets.md#pool-9)   | Energieverbruik-historiek per toestel | P0         | Wacht op visuele bevestiging (PR #6) |
+| [POOL-6](tickets.md#pool-6)   | Automatiseringen tonen per modus      | P1         | Wacht op visuele bevestiging (PR #6) |
+| [POOL-10](tickets.md#pool-10) | Waterkwaliteit-trends (pH/ORP/zout)   | P1         | Wacht op visuele bevestiging (PR #6) |
 
 ## Klaar
 

@@ -169,8 +169,8 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 - **Voortgang:** geïmplementeerd (`_historyEntities()` uitgebreid met de drie
   waterkwaliteit-metingen), `npm run verify` groen (28/28 tests), docs
   bijgewerkt (`README.md`, `docs/configuration.md`, `ARCHITECTURE.md`).
-  Nog niet gecommit/gepusht — wacht op beslissing: meenemen in PR #6 of
-  eigen branch/PR.
+  Meegenomen in PR #6 (github.com/ju1ced/pool-dashboard/pull/6), wacht op
+  visuele bevestiging door de gebruiker samen met POOL-9/POOL-6.
 
 ---
 
