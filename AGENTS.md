@@ -163,3 +163,18 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   no entity-key-contract change. Includes POOL-11/12/14/15/17's rows
   (comfort score, PV-mode, doeltemperatuur-tijdstip, verbruikskost,
   schrijfbare setpoints), rebased onto this branch once those merged.
+- Warmtepomp-illustratie layout gecorrigeerd (na visuele review op
+  v0.5.0): het toestel was te groot, waardoor het "Warmtepomp"-label en
+  zijn statuslichtje net raakten aan de bovenrand van de buitenste
+  gloed-ellips. Het hele toestel (glow, lichaam, luchtroosters, ogen,
+  voetstuk) zit nu in één schalende SVG-`<g>` met een
+  `translate/scale(0.82)/translate`-transform — geschaald rond zijn
+  eigen grondpunt, zodat de voet op dezelfde plek blijft staan terwijl
+  de top naar beneden verschuift en ruimte vrijmaakt voor het label.
+  `Doel`/`Verbruik`
+  stonden bovendien nog overlayed óp het toestel (`onDark`-badges) i.p.v.
+  eronder zoals bij filterpomp/zoutsysteem — nu verplaatst naar dezelfde
+  rij als de andere "Verbruik"-badges (top 92.9%), zonder `onDark`. Geen
+  wijziging aan het entity-key-contract. Geverifieerd met een
+  playwright-screenshot van de gerenderde illustratie-HTML vóór het
+  mergen (zie `docs/planning/tickets.md` voor het ticket).

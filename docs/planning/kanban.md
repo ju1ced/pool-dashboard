@@ -28,7 +28,9 @@ Geen tickets.
 
 ## Review/validatie
 
-Geen tickets.
+| Ticket                        | Onderwerp                                  | Prioriteit | Blokkade                              |
+| ----------------------------- | ------------------------------------------ | ---------- | ------------------------------------- |
+| [POOL-24](tickets.md#pool-24) | Warmtepomp-illustratie layout gecorrigeerd | P1         | Wacht op visuele bevestiging (PR #10) |
 
 ## Klaar
 

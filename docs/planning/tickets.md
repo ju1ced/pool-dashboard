@@ -432,3 +432,35 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   tussentijdse versie. Node-simulatie bevestigt correcte subgroep-markup
   en graceful-empty-gedrag voor zowel de volledige als een minimale
   config. Gemerged via PR #9.
+
+---
+
+<a id="pool-24"></a>
+
+## POOL-24 — Warmtepomp-illustratie layout gecorrigeerd
+
+**Status:** Review/validatie · **Prioriteit:** P1 · **Epic:** Basis
+
+- **Scope:** na visuele review van v0.5.0 (screenshot van de live kaart):
+  het warmtepomp-toestel op de illustratie was te groot — het
+  "Warmtepomp"-label en zijn statuslichtje raakten de bovenrand van de
+  buitenste gloed-ellips, terwijl filterpomp en zoutsysteem wél duidelijk
+  ruimte hebben boven hun label. Daarnaast stonden `Doel`/`Verbruik` nog
+  overlayed óp het toestel i.p.v. eronder zoals bij de andere twee
+  toestellen.
+- **Afhankelijkheden:** geen — pure SVG/CSS-aanpassing, geen wijziging
+  aan het entity-key-contract.
+- **Acceptatiecriteria:** warmtepomp-toestel kleiner, met duidelijke
+  ruimte tussen label+statuslichtje en de bovenrand van het toestel;
+  `Doel`/`Verbruik` op dezelfde rij als de andere "Verbruik"-badges,
+  onder het toestel i.p.v. erop; `npm run verify` groen.
+- **Voortgang:** hele toestel-groep (glow, lichaam, luchtroosters, ogen,
+  voetstuk) samengevoegd in één schalende SVG-`<g>` met een
+  `translate/scale(0.82)/translate`-transform, geschaald rond zijn eigen
+  grondpunt zodat de voet ter plaatse blijft en de top ruimte vrijmaakt.
+  `Doel`/`Verbruik`-badges verplaatst naar dezelfde onderste rij als
+  filterpomp/zoutsysteem (top 92.9%), zonder de `onDark`-styling die
+  enkel voor overlay-op-toestel bedoeld was. Geverifieerd met een
+  playwright-screenshot van de gerenderde illustratie-HTML (realistische
+  waarden) vóór het mergen: bevestigt kleiner toestel, zichtbaar label
+  en statuslichtje, en badges op de juiste rij. `npm run verify` groen.
