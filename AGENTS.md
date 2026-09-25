@@ -121,3 +121,36 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   `settingRow()`/`_measure()` helpers. Reads whatever value an existing HA
   automation already computes; the card never derives or synthesizes a
   score itself.
+- POOL-17 — pH/ORP setpoints are now writable from the card when mapped to
+  a `number.*`/`input_number.*` entity: a +/− stepper in **Instellingen**
+  reusing a new generic `_adjustNumber()` (factored out of the existing
+  target-temperature stepper's `_adjustTarget()`, which now delegates to
+  it, plus a new `_adjustSetpoint()` for the settings-group steppers) and
+  the existing domain-safe `_setNumber()` write path. Falls back to the
+  previous plain display row for any other domain.
+- POOL-12 — new optional `energy_price` field (currency/kWh). When set
+  together with a power-draw sensor, **Instellingen** shows a pure,
+  no-guessing instantaneous running-cost estimate (power × price, via the
+  new pure `estimatedCostPerHour()` helper) per device — never a
+  cumulative total, and nothing renders unless both readings are live
+  numbers.
+- POOL-15 — new optional `pv_mode` field, shown display-only in
+  **Instellingen**. Reads whatever an existing HA automation already sets;
+  the card never derives PV/solar logic itself.
+- POOL-14 (scoped down after a read-only MCP check) — the automation that
+  recalculates the target temperature from a weather forecast only logs
+  its reasoning transiently (`logbook`/a persistent notification); it does
+  not persist a "why" anywhere the card could read. Duplicating that Jinja
+  logic in the card would violate this project's own no-duplication
+  design decision (see `salt_system_fault`/`saltSystemFault` above), and
+  making the automation persist a reasoning string is a Home-Assistant-side
+  change needing separate approval (`AGENTS.md` scope rule). Implemented
+  only the honest subset: an optional `target_temperature_updated`
+  timestamp entity, shown display-only in **Instellingen** — the "when",
+  not the "why". Full reasoning display stays backlog, gated on that HA
+  change.
+- POOL-16 reassessed, not implemented: a push-alert-on-threshold feature
+  needs an interval timer plus a live `notify.*` call running whenever the
+  dashboard tab happens to be open — a poor fit for a Lovelace card, and
+  properly an HA automation's job instead. Left in the backlog with this
+  note rather than forcing a fragile in-card implementation.

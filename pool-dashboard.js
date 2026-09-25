@@ -171,6 +171,25 @@ function setValueDomain(entityId) {
   return domain === "number" || domain === "input_number" ? domain : null;
 }
 
+/**
+ * Instantaneous running cost of a power-draw reading, in currency/hour —
+ * pure arithmetic on two already-live values (Watts, currency/kWh), never a
+ * guessed or cumulative figure (POOL-12). Returns null when either input is
+ * missing or not a finite, non-negative number, so callers render nothing
+ * rather than a bogus estimate.
+ */
+function estimatedCostPerHour(watts, pricePerKwh) {
+  if (typeof watts !== "number" || !Number.isFinite(watts) || watts < 0)
+    return null;
+  if (
+    typeof pricePerKwh !== "number" ||
+    !Number.isFinite(pricePerKwh) ||
+    pricePerKwh < 0
+  )
+    return null;
+  return (watts / 1000) * pricePerKwh;
+}
+
 /** Confirmation is on by default; only an explicit `false` disables it. */
 function shouldConfirm(config) {
   return config?.confirm_actions !== false;
@@ -271,6 +290,9 @@ function collectEntityIds(config) {
   add(config?.salt_system_fault);
   add(config?.swim_mode);
   add(config?.comfort_score);
+  add(config?.pv_mode);
+  add(config?.target_temperature_updated);
+  add(config?.energy_price);
   Object.values(config?.filter || {}).forEach(add);
   Object.values(config?.heater || {}).forEach(add);
   Object.values(config?.salt_system || {}).forEach((v) => {
@@ -737,21 +759,42 @@ class PoolDashboardCard extends CardBase {
     );
   }
 
-  async _adjustTarget(delta) {
-    const entityId = this._config?.target_temperature;
+  /**
+   * Shared +/- stepper logic for any writable numeric entity (target
+   * temperature, pH/ORP setpoints): reads the entity's own step/min/max
+   * attributes when HA reports them, falling back to `defaults` otherwise.
+   */
+  async _adjustNumber(entityId, delta, label, defaults = {}) {
     const obj = this._obj(entityId);
     const current = parseNumeric(obj?.state);
     if (current === null) {
-      this._notify("Doeltemperatuur niet beschikbaar.");
+      this._notify(`${label || entityId} niet beschikbaar.`);
       return;
     }
     const step = Number.isFinite(obj?.attributes?.step)
       ? obj.attributes.step
-      : 0.5;
-    const min = Number.isFinite(obj?.attributes?.min) ? obj.attributes.min : 0;
-    const max = Number.isFinite(obj?.attributes?.max) ? obj.attributes.max : 40;
+      : (defaults.step ?? 1);
+    const min = Number.isFinite(obj?.attributes?.min)
+      ? obj.attributes.min
+      : (defaults.min ?? -1000);
+    const max = Number.isFinite(obj?.attributes?.max)
+      ? obj.attributes.max
+      : (defaults.max ?? 1000);
     const next = Math.min(max, Math.max(min, current + delta * step));
-    await this._setNumber(entityId, next, "Doeltemperatuur");
+    await this._setNumber(entityId, next, label);
+  }
+
+  async _adjustTarget(delta) {
+    await this._adjustNumber(
+      this._config?.target_temperature,
+      delta,
+      "Doeltemperatuur",
+      { step: 0.5, min: 0, max: 40 },
+    );
+  }
+
+  async _adjustSetpoint(entityId, delta, label) {
+    await this._adjustNumber(entityId, delta, label, { step: 0.1 });
   }
 
   async _revertOverrides() {
@@ -859,6 +902,16 @@ class PoolDashboardCard extends CardBase {
           this._adjustTarget(Number(el.dataset.targetStep)),
         ),
       );
+    root.querySelectorAll("[data-setpoint-step]").forEach((el) =>
+      el.addEventListener("click", (event) => {
+        event.stopPropagation();
+        this._adjustSetpoint(
+          el.dataset.setpointEntity,
+          Number(el.dataset.setpointStep),
+          el.dataset.setpointLabel,
+        );
+      }),
+    );
     root
       .querySelectorAll("[data-revert]")
       .forEach((el) =>
@@ -1368,14 +1421,64 @@ class PoolDashboardCard extends CardBase {
       const m = this._measure(entityId, opts);
       return `<div class="settings-row" data-info="${escapeHtml(entityId)}"><span class="l">${escapeHtml(label)}</span><span class="v ${m.available ? "" : "unavail"}">${escapeHtml(m.value)}${m.unit ? ` ${escapeHtml(m.unit)}` : ""}</span></div>`;
     };
+    const dateRow = (entityId, label) => {
+      if (!entityId) return "";
+      const obj = this._obj(entityId);
+      const known = !!obj && !isUnavailable(obj.state);
+      const value = !obj
+        ? "Niet ingesteld"
+        : known
+          ? this._formatDateTime(obj.state)
+          : obj.state === "unavailable"
+            ? "Niet beschikbaar"
+            : "Onbekend";
+      return `<div class="settings-row" data-info="${escapeHtml(entityId)}"><span class="l">${escapeHtml(label)}</span><span class="v ${known ? "" : "unavail"}">${escapeHtml(value)}</span></div>`;
+    };
+    // POOL-17: pH/ORP setpoints are writable (number/input_number), unlike
+    // the rest of this group — a +/- stepper instead of the passive
+    // settingRow(), reusing the same _setNumber() domain-safe write path as
+    // the Quick-controls target-temperature stepper. Falls back to a plain
+    // settingRow() when the configured entity isn't a settable domain.
+    const setpointRow = (entityId, label, opts = {}) => {
+      if (!entityId) return "";
+      if (!setValueDomain(entityId)) return settingRow(entityId, label, opts);
+      const m = this._measure(entityId, opts);
+      return `
+        <div class="settings-row setpoint">
+          <span class="l">${escapeHtml(label)}</span>
+          <span class="stepper-controls mini">
+            <button data-setpoint-step="-1" data-setpoint-entity="${escapeHtml(entityId)}" data-setpoint-label="${escapeHtml(label)}" ${!m.available ? "disabled" : ""}>−</button>
+            <span class="v">${escapeHtml(m.value)}${m.unit ? ` ${escapeHtml(m.unit)}` : ""}</span>
+            <button data-setpoint-step="1" data-setpoint-entity="${escapeHtml(entityId)}" data-setpoint-label="${escapeHtml(label)}" ${!m.available ? "disabled" : ""}>+</button>
+          </span>
+        </div>`;
+    };
+    // POOL-12: pure power × price arithmetic, never a guess — renders
+    // nothing unless both the power-draw entity and energy_price are live
+    // numbers. Reuses the same power-draw sensors the illustration's
+    // "Verbruik" badges and the Historie graphs already read.
+    const priceEntity = this._config.energy_price;
+    const costRow = (wattsEntityId, label) => {
+      if (!priceEntity || !wattsEntityId) return "";
+      const watts = parseNumeric(this._obj(wattsEntityId)?.state);
+      const price = parseNumeric(this._obj(priceEntity)?.state);
+      const cost = estimatedCostPerHour(watts, price);
+      if (cost === null) return "";
+      return `<div class="settings-row" data-info="${escapeHtml(wattsEntityId)}"><span class="l">${escapeHtml(label)}</span><span class="v">€${cost.toFixed(2)}/u</span></div>`;
+    };
     return `
       <details class="group" data-group="settings">
         <summary>Instellingen &amp; diagnostiek <span class="chev">▶</span></summary>
         <div class="body">
           ${settingRow(this._config.comfort_score, "Comfortscore", { digits: 0, unitOverride: "/ 100" })}
-          ${settingRow(wq.ph_setpoint, "pH-setpoint")}
-          ${settingRow(wq.orp_setpoint, "ORP-setpoint", { unitOverride: "mV" })}
+          ${dateRow(this._config.target_temperature_updated, "Doeltemperatuur laatst aangepast")}
+          ${settingRow(this._config.pv_mode, "PV-modus")}
+          ${setpointRow(wq.ph_setpoint, "pH-setpoint")}
+          ${setpointRow(wq.orp_setpoint, "ORP-setpoint", { unitOverride: "mV" })}
           ${settingRow(this._config.salt_system?.chlorination_level, "Chlorinatie", { unitOverride: "%" })}
+          ${costRow(this._config.filter?.power_draw, "Filterpomp verbruik")}
+          ${costRow(this._config.heater?.power_draw, "Warmtepomp verbruik")}
+          ${costRow(this._config.salt_system_fault, "Zoutsysteem verbruik")}
           ${settingRow(heater.mode, "Warmtepomp-modus")}
           ${settingRow(heater.compressor, "Compressor")}
           ${settingRow(heater.circulate_pump, "Circulatiepomp")}
@@ -1667,6 +1770,7 @@ if (typeof module !== "undefined" && module.exports) {
     parseNumeric,
     actionServiceFor,
     setValueDomain,
+    estimatedCostPerHour,
     shouldConfirm,
     resolveThemeMode,
     ILLUS_TOKENS,

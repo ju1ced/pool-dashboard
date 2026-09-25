@@ -9,6 +9,7 @@ const {
   parseNumeric,
   actionServiceFor,
   setValueDomain,
+  estimatedCostPerHour,
   shouldConfirm,
   resolveThemeMode,
   modeImpactSummary,
@@ -181,6 +182,9 @@ test("collectEntityIds gathers every nested entity id", () => {
     heater_power: "input_boolean.heater",
     swim_mode: "input_boolean.swim",
     comfort_score: "input_number.comfort_score",
+    pv_mode: "input_boolean.pv",
+    target_temperature_updated: "input_datetime.target_updated",
+    energy_price: "sensor.energy_price",
     filter: { pump: "switch.pump", catchup_mode: "input_boolean.catchup" },
     salt_system: { power: "switch.salt", fault_below_watts: 15 },
     water_quality: { ph: "sensor.ph" },
@@ -193,6 +197,9 @@ test("collectEntityIds gathers every nested entity id", () => {
   assert.ok(ids.includes("input_select.mode"));
   assert.ok(ids.includes("automation.filter_start"));
   assert.ok(ids.includes("input_number.comfort_score"));
+  assert.ok(ids.includes("input_boolean.pv"));
+  assert.ok(ids.includes("input_datetime.target_updated"));
+  assert.ok(ids.includes("sensor.energy_price"));
   // the numeric threshold must never be treated as an entity id
   assert.ok(!ids.includes(15));
   assert.equal(ids.length, new Set(ids).size);
@@ -433,6 +440,19 @@ test("historyBars returns null with fewer than two numeric points", () => {
     null,
   );
   assert.equal(historyBars(null), null);
+});
+
+test("estimatedCostPerHour computes power x price, never a guess", () => {
+  assert.ok(Math.abs(estimatedCostPerHour(1500, 0.3) - 0.45) < 1e-9);
+  assert.equal(estimatedCostPerHour(0, 0.3), 0);
+});
+
+test("estimatedCostPerHour returns null on missing/invalid inputs", () => {
+  assert.equal(estimatedCostPerHour(null, 0.3), null);
+  assert.equal(estimatedCostPerHour(1500, null), null);
+  assert.equal(estimatedCostPerHour(NaN, 0.3), null);
+  assert.equal(estimatedCostPerHour(-5, 0.3), null);
+  assert.equal(estimatedCostPerHour(1500, -0.1), null);
 });
 
 test("deriveStatus: a misconfigured (missing) required field is treated as unavailable", () => {
