@@ -950,6 +950,10 @@ class PoolDashboardCard extends CardBase {
   _renderPoolIllustration() {
     const water = this._measure(this._config.water_temperature);
     const ambient = this._measure(this._config.ambient_temperature);
+    const comfort = this._measure(this._config.comfort_score, {
+      digits: 0,
+      unitOverride: "/ 100",
+    });
     const target = this._measure(this._config.target_temperature);
     const ph = this._measure(this._config.water_quality?.ph);
     const orp = this._measure(this._config.water_quality?.orp, {
@@ -1106,11 +1110,16 @@ class PoolDashboardCard extends CardBase {
               <circle cx="572" cy="486" r="7" fill="var(--pd-illus-screen-text)"></circle>
             </g>
 
-            <!-- heat pump: scaled down (anchored on its ground shadow) so
-                 the "Warmtepomp" equip-label + status dot above it, which
-                 sit just above the un-scaled top edge, have clear space
-                 instead of touching the outer glow ellipse. -->
-            <g transform="translate(865,628) scale(0.82) translate(-865,-628)">
+            <!-- heat pump: scaled down and anchored near its own vertical
+                 centre (not its base) so BOTH edges retreat — the top
+                 clears the "Warmtepomp" label+dot above it, and the
+                 bottom clears the Doel/Verbruik badge row below it,
+                 matching the vertical footprint filter pump/salt system
+                 already have relative to their own label/badge rows.
+                 (An earlier fix anchored the scale on the ground point
+                 instead, which only helped the top — the bottom barely
+                 moved, since it started close to that anchor.) -->
+            <g transform="translate(865,460) scale(0.75) translate(-865,-460)">
               <ellipse cx="865" cy="475" rx="140" ry="165" fill="var(--pd-illus-heater-accent)" opacity=".12"></ellipse>
               <ellipse cx="865" cy="615" rx="62" ry="13" fill="var(--pd-illus-equip-panel)"></ellipse>
               <rect x="840" y="598" width="50" height="20" fill="var(--pd-illus-equip-panel)"></rect>
@@ -1155,6 +1164,7 @@ class PoolDashboardCard extends CardBase {
               <span>Water</span>
             </div>
             ${this._config.ambient_temperature ? badge(92.3, 14, this._config.ambient_temperature, "Buiten", ambient) : ""}
+            ${this._config.comfort_score ? badge(92.3, 32, this._config.comfort_score, "Comfort", comfort) : ""}
 
             ${equipLabel(19.2, 58.5, this._config.filter?.pump, pumpLabel)}
             ${

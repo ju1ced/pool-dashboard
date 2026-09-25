@@ -178,3 +178,25 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   wijziging aan het entity-key-contract. Geverifieerd met een
   playwright-screenshot van de gerenderde illustratie-HTML vóór het
   mergen (zie `docs/planning/tickets.md` voor het ticket).
+- POOL-25 — two follow-ups after a second visual review of v0.5.1:
+  1. The heat-pump scale transform from the previous fix anchored on
+     the equipment's own ground point, which only pulled the _top_ in
+     (clearing the label) — the anchor point sat close to the bottom
+     edge already, so shrinking barely moved it, leaving the
+     Doel/Verbruik badge row still crowded. Re-anchored the same
+     `<g>` transform on the equipment's vertical centre instead
+     (`translate(865,460) scale(0.75) translate(-865,-460)`), so both
+     edges retreat — top away from the label, bottom away from the
+     badges — matching filter pump/salt system's own vertical
+     footprint relative to their label/badge rows.
+  2. `comfort_score` is now also shown as a badge directly on the pool
+     illustration (top-right, stacked below the existing "Buiten"
+     ambient badge), not just in **Instellingen**. A symmetric
+     top-left placement was tried first and rejected — the wood-deck
+     polygon isn't centred in the scene, so the left side has almost
+     no open sky and the badge collided with the deck.
+
+  Both verified with playwright screenshots of the rendered
+  illustration HTML (light and dark theme) before merging. No
+  entity-key-contract change beyond the existing optional
+  `comfort_score` field.
