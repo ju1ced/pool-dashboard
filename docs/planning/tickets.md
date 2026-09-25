@@ -172,7 +172,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-11 — Comfortscore zichtbaar maken in de kaart
 
-**Status:** Backlog · **Prioriteit:** P1 · **Epic:** Historiek & statistieken
+**Status:** Review/validatie · **Prioriteit:** P1 · **Epic:** Historiek & statistieken
 
 - **Scope:** er bestaat al een Home Assistant-automatisering die een
   comfortscore berekent, maar die wordt nergens in de kaart getoond.
@@ -181,6 +181,12 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   en of die betrouwbaar gevuld wordt.
 - **Acceptatiecriteria:** score zichtbaar in de kaart met correcte
   eenheid/schaal; graceful handling wanneer de bron-entiteit onbeschikbaar is.
+- **Voortgang:** MCP-check bevestigde de bron-entiteit (een `input_number`,
+  schaal 0-100, geschreven door een bestaande automatisering). Nieuw
+  optioneel `comfort_score`-veld toegevoegd, gerenderd als rij in
+  Instellingen & diagnostiek. `npm run verify` groen. PR open:
+  github.com/ju1ced/pool-dashboard/pull/7. Wacht op visuele bevestiging
+  door de gebruiker — geen tussentijdse release.
 
 ---
 

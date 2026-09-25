@@ -180,6 +180,7 @@ test("collectEntityIds gathers every nested entity id", () => {
     ambient_temperature: "sensor.ambient",
     heater_power: "input_boolean.heater",
     swim_mode: "input_boolean.swim",
+    comfort_score: "input_number.comfort_score",
     filter: { pump: "switch.pump", catchup_mode: "input_boolean.catchup" },
     salt_system: { power: "switch.salt", fault_below_watts: 15 },
     water_quality: { ph: "sensor.ph" },
@@ -191,6 +192,7 @@ test("collectEntityIds gathers every nested entity id", () => {
   assert.ok(ids.includes("switch.pump"));
   assert.ok(ids.includes("input_select.mode"));
   assert.ok(ids.includes("automation.filter_start"));
+  assert.ok(ids.includes("input_number.comfort_score"));
   // the numeric threshold must never be treated as an entity id
   assert.ok(!ids.includes(15));
   assert.equal(ids.length, new Set(ids).size);
