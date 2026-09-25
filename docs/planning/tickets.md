@@ -465,3 +465,36 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   waarden) vóór het mergen: bevestigt kleiner toestel, zichtbaar label
   en statuslichtje, en badges op de juiste rij. `npm run verify` groen.
   Gemerged via PR #10.
+
+---
+
+<a id="pool-25"></a>
+
+## POOL-25 — Warmtepomp-anchor gecorrigeerd + comfortscore op de illustratie
+
+**Status:** Review/validatie · **Prioriteit:** P1 · **Epic:** Basis
+
+- **Scope:** tweede visuele review op v0.5.1 wees uit dat POOL-24's fix
+  onvoldoende was: het schaal-`<g>` was verankerd op het grondpunt van
+  het toestel, wat enkel de bovenkant (label-ruimte) verbeterde — dat
+  grondpunt lag al dicht bij de onderrand, dus die verschoof amper, en
+  Doel/Verbruik bleven krap tegen het toestel aan staan. Daarnaast vroeg
+  de gebruiker om de comfortscore ook rechtstreeks op de
+  zwembad-illustratie te tonen, niet enkel in Instellingen.
+- **Afhankelijkheden:** geen — voortbouwend op POOL-24 en het bestaande
+  optionele `comfort_score`-veld (POOL-11).
+- **Acceptatiecriteria:** warmtepomp-toestel heeft nu duidelijke ruimte
+  aan zowel boven- als onderkant (vergelijkbaar met filterpomp/
+  zoutsysteem hun eigen footprint t.o.v. hun label/badge-rijen);
+  comfortscore zichtbaar als badge op de illustratie zelf, zonder de
+  houten-vlonder-vorm te overlappen; `npm run verify` groen.
+- **Voortgang:** schaal-`<g>` opnieuw verankerd op het verticale midden
+  van het toestel (`translate(865,460) scale(0.75) translate(-865,-460)`)
+  i.p.v. het grondpunt, zodat beide randen terugtrekken. Comfortscore-
+  badge toegevoegd naast de bestaande "Buiten"-badge; een symmetrische
+  linkerplaatsing werd eerst geprobeerd maar afgekeurd — de houten
+  vlonder staat niet gecentreerd in de scène, dus links is er nauwelijks
+  open lucht en botste de badge met de vlonder. Uiteindelijk geplaatst
+  rechtsboven, onder "Buiten". Geverifieerd met playwright-screenshots
+  van de gerenderde illustratie (licht + donker thema, realistische
+  waarden uit de live screenshot) vóór het mergen. `npm run verify` groen.

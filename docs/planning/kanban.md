@@ -28,7 +28,9 @@ Geen tickets.
 
 ## Review/validatie
 
-Geen tickets.
+| Ticket                        | Onderwerp                                                    | Prioriteit | Blokkade                              |
+| ----------------------------- | ------------------------------------------------------------ | ---------- | ------------------------------------- |
+| [POOL-25](tickets.md#pool-25) | Warmtepomp-anchor gecorrigeerd + comfortscore op illustratie | P1         | Wacht op visuele bevestiging (PR #11) |
 
 ## Klaar
 
