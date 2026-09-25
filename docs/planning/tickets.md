@@ -398,7 +398,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-23 — Instellingen & diagnostiek opdelen in subsecties
 
-**Status:** Review/validatie · **Prioriteit:** P2 · **Epic:** Kaart-UX
+**Status:** Klaar · **Prioriteit:** P2 · **Epic:** Kaart-UX
 
 - **Scope:** `_renderSettingsGroup()` groepeert zijn rijen in vier
   subsecties (Automatisch bijgewerkt, Waterkwaliteit, Verbruikskost,
@@ -423,14 +423,12 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   gerechtvaardigd is (de hero-row en de vier groepen doorliepen al een
   eigen, goedgekeurd ontwerpproces in v0.3.3) — enkel deze groep is echt
   gegroeid tot een probleem.
-- **Voortgang:** volledig 4-subsecties-ontwerp geïmplementeerd (Automatisch
+- **Afgerond:** volledig 4-subsecties-ontwerp geïmplementeerd (Automatisch
   bijgewerkt, Waterkwaliteit, Verbruikskost, Warmtepomp diagnostiek) — PR
-  #7 en #8 waren intussen gemerged naar `main`, dus deze branch is erop
+  #7 en #8 waren intussen gemerged naar `main`, dus deze branch werd erop
   gerebaset en alle rijen (comfortscore, PV-modus,
   doeltemperatuur-tijdstip, verbruikskost, schrijfbare setpoints) zijn
   meteen in de juiste subsectie geplaatst i.p.v. een kleinere,
   tussentijdse versie. Node-simulatie bevestigt correcte subgroep-markup
   en graceful-empty-gedrag voor zowel de volledige als een minimale
-  config. `npm run verify` groen. PR open:
-  github.com/ju1ced/pool-dashboard/pull/9. Wacht op visuele bevestiging
-  door de gebruiker tegen de mockup.
+  config. Gemerged via PR #9.

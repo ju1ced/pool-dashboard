@@ -28,27 +28,26 @@ Geen tickets.
 
 ## Review/validatie
 
-| Ticket                        | Onderwerp                                        | Prioriteit | Blokkade                             |
-| ----------------------------- | ------------------------------------------------ | ---------- | ------------------------------------ |
-| [POOL-23](tickets.md#pool-23) | Instellingen & diagnostiek opdelen in subsecties | P2         | Wacht op visuele bevestiging (PR #9) |
+Geen tickets.
 
 ## Klaar
 
-| Ticket                        | Onderwerp                                     | Prioriteit |
-| ----------------------------- | --------------------------------------------- | ---------- |
-| [POOL-1](tickets.md#pool-1)   | Kaart, editor, tests, HACS-bestanden en docs  | P2         |
-| [POOL-2](tickets.md#pool-2)   | Zwembadillustratie met live waarden           | P2         |
-| [POOL-3](tickets.md#pool-3)   | Illustratie + snelle bediening naast elkaar   | P2         |
-| [POOL-4](tickets.md#pool-4)   | Technisch ontwerp seizoensmodus-backend       | P0         |
-| [POOL-22](tickets.md#pool-22) | Warmtepomp-label uitlijning gecorrigeerd      | P2         |
-| [POOL-9](tickets.md#pool-9)   | Energieverbruik-historiek per toestel         | P0         |
-| [POOL-6](tickets.md#pool-6)   | Automatiseringen tonen per modus              | P1         |
-| [POOL-10](tickets.md#pool-10) | Waterkwaliteit-trends (pH/ORP/zout)           | P1         |
-| [POOL-11](tickets.md#pool-11) | Comfortscore in de kaart                      | P1         |
-| [POOL-17](tickets.md#pool-17) | pH/ORP-setpoints instelbaar maken             | P2         |
-| [POOL-12](tickets.md#pool-12) | Kostenraming op energieprijs                  | P2         |
-| [POOL-15](tickets.md#pool-15) | PV/zonne-optimalisatie zichtbaar maken        | P1         |
-| [POOL-14](tickets.md#pool-14) | Weersvoorspelling-context tonen (afgeschaald) | P1         |
+| Ticket                        | Onderwerp                                        | Prioriteit |
+| ----------------------------- | ------------------------------------------------ | ---------- |
+| [POOL-1](tickets.md#pool-1)   | Kaart, editor, tests, HACS-bestanden en docs     | P2         |
+| [POOL-2](tickets.md#pool-2)   | Zwembadillustratie met live waarden              | P2         |
+| [POOL-3](tickets.md#pool-3)   | Illustratie + snelle bediening naast elkaar      | P2         |
+| [POOL-4](tickets.md#pool-4)   | Technisch ontwerp seizoensmodus-backend          | P0         |
+| [POOL-22](tickets.md#pool-22) | Warmtepomp-label uitlijning gecorrigeerd         | P2         |
+| [POOL-9](tickets.md#pool-9)   | Energieverbruik-historiek per toestel            | P0         |
+| [POOL-6](tickets.md#pool-6)   | Automatiseringen tonen per modus                 | P1         |
+| [POOL-10](tickets.md#pool-10) | Waterkwaliteit-trends (pH/ORP/zout)              | P1         |
+| [POOL-11](tickets.md#pool-11) | Comfortscore in de kaart                         | P1         |
+| [POOL-17](tickets.md#pool-17) | pH/ORP-setpoints instelbaar maken                | P2         |
+| [POOL-12](tickets.md#pool-12) | Kostenraming op energieprijs                     | P2         |
+| [POOL-15](tickets.md#pool-15) | PV/zonne-optimalisatie zichtbaar maken           | P1         |
+| [POOL-14](tickets.md#pool-14) | Weersvoorspelling-context tonen (afgeschaald)    | P1         |
+| [POOL-23](tickets.md#pool-23) | Instellingen & diagnostiek opdelen in subsecties | P2         |
 
 ## Geblokkeerd
 
