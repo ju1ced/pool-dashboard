@@ -439,7 +439,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-24 — Warmtepomp-illustratie layout gecorrigeerd
 
-**Status:** Review/validatie · **Prioriteit:** P1 · **Epic:** Basis
+**Status:** Klaar · **Prioriteit:** P1 · **Epic:** Basis
 
 - **Scope:** na visuele review van v0.5.0 (screenshot van de live kaart):
   het warmtepomp-toestel op de illustratie was te groot — het
@@ -464,3 +464,4 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   playwright-screenshot van de gerenderde illustratie-HTML (realistische
   waarden) vóór het mergen: bevestigt kleiner toestel, zichtbaar label
   en statuslichtje, en badges op de juiste rij. `npm run verify` groen.
+  Gemerged via PR #10.
