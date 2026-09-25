@@ -1106,36 +1106,41 @@ class PoolDashboardCard extends CardBase {
               <circle cx="572" cy="486" r="7" fill="var(--pd-illus-screen-text)"></circle>
             </g>
 
-            <!-- heat pump -->
-            <ellipse cx="865" cy="475" rx="140" ry="165" fill="var(--pd-illus-heater-accent)" opacity=".12"></ellipse>
-            <ellipse cx="865" cy="615" rx="62" ry="13" fill="var(--pd-illus-equip-panel)"></ellipse>
-            <rect x="840" y="598" width="50" height="20" fill="var(--pd-illus-equip-panel)"></rect>
-            <ellipse cx="865" cy="470" rx="105" ry="135" fill="var(--pd-illus-equip)"></ellipse>
-            <g clip-path="url(#pi-egg-clip)">
-              <rect x="760" y="335" width="210" height="140" fill="var(--pd-illus-panel-dark)"></rect>
-              <g fill="var(--pd-illus-equip-panel)" opacity=".55">
-                <rect x="765" y="335" width="9" height="270"></rect>
-                <rect x="782" y="335" width="9" height="270"></rect>
-                <rect x="799" y="335" width="9" height="270"></rect>
-                <rect x="816" y="335" width="9" height="270"></rect>
-                <rect x="833" y="335" width="9" height="270"></rect>
-                <rect x="850" y="335" width="9" height="270"></rect>
-                <rect x="867" y="335" width="9" height="270"></rect>
-                <rect x="884" y="335" width="9" height="270"></rect>
-                <rect x="901" y="335" width="9" height="270"></rect>
-                <rect x="918" y="335" width="9" height="270"></rect>
-                <rect x="935" y="335" width="9" height="270"></rect>
-                <rect x="952" y="335" width="9" height="270"></rect>
-                <rect x="969" y="335" width="9" height="270"></rect>
+            <!-- heat pump: scaled down (anchored on its ground shadow) so
+                 the "Warmtepomp" equip-label + status dot above it, which
+                 sit just above the un-scaled top edge, have clear space
+                 instead of touching the outer glow ellipse. -->
+            <g transform="translate(865,628) scale(0.82) translate(-865,-628)">
+              <ellipse cx="865" cy="475" rx="140" ry="165" fill="var(--pd-illus-heater-accent)" opacity=".12"></ellipse>
+              <ellipse cx="865" cy="615" rx="62" ry="13" fill="var(--pd-illus-equip-panel)"></ellipse>
+              <rect x="840" y="598" width="50" height="20" fill="var(--pd-illus-equip-panel)"></rect>
+              <ellipse cx="865" cy="470" rx="105" ry="135" fill="var(--pd-illus-equip)"></ellipse>
+              <g clip-path="url(#pi-egg-clip)">
+                <rect x="760" y="335" width="210" height="140" fill="var(--pd-illus-panel-dark)"></rect>
+                <g fill="var(--pd-illus-equip-panel)" opacity=".55">
+                  <rect x="765" y="335" width="9" height="270"></rect>
+                  <rect x="782" y="335" width="9" height="270"></rect>
+                  <rect x="799" y="335" width="9" height="270"></rect>
+                  <rect x="816" y="335" width="9" height="270"></rect>
+                  <rect x="833" y="335" width="9" height="270"></rect>
+                  <rect x="850" y="335" width="9" height="270"></rect>
+                  <rect x="867" y="335" width="9" height="270"></rect>
+                  <rect x="884" y="335" width="9" height="270"></rect>
+                  <rect x="901" y="335" width="9" height="270"></rect>
+                  <rect x="918" y="335" width="9" height="270"></rect>
+                  <rect x="935" y="335" width="9" height="270"></rect>
+                  <rect x="952" y="335" width="9" height="270"></rect>
+                  <rect x="969" y="335" width="9" height="270"></rect>
+                </g>
+                <rect x="760" y="475" width="210" height="13" fill="var(--pd-illus-water-2)"></rect>
+                <ellipse cx="822" cy="400" rx="38" ry="44" fill="var(--pd-illus-equip)"></ellipse>
+                <ellipse cx="908" cy="400" rx="38" ry="44" fill="var(--pd-illus-equip)"></ellipse>
+                <circle cx="814" cy="406" r="10" fill="var(--pd-illus-panel-dark)"></circle>
+                <circle cx="900" cy="406" r="10" fill="var(--pd-illus-panel-dark)"></circle>
               </g>
-              <rect x="760" y="475" width="210" height="13" fill="var(--pd-illus-water-2)"></rect>
-              <ellipse cx="822" cy="400" rx="38" ry="44" fill="var(--pd-illus-equip)"></ellipse>
-              <ellipse cx="908" cy="400" rx="38" ry="44" fill="var(--pd-illus-equip)"></ellipse>
-              <circle cx="814" cy="406" r="10" fill="var(--pd-illus-panel-dark)"></circle>
-              <circle cx="900" cy="406" r="10" fill="var(--pd-illus-panel-dark)"></circle>
+              <path d="M845,444 L885,444 L865,464 Z" fill="var(--pd-illus-heater-accent)"></path>
+              <rect x="852" y="452" width="26" height="13" rx="3" fill="var(--pd-illus-panel-dark)"></rect>
             </g>
-            <path d="M845,444 L885,444 L865,464 Z" fill="var(--pd-illus-heater-accent)"></path>
-            <rect x="852" y="452" width="26" height="13" rx="3" fill="var(--pd-illus-panel-dark)"></rect>
           </svg>
 
           <div class="pi-overlay">
@@ -1170,8 +1175,8 @@ class PoolDashboardCard extends CardBase {
             ${this._config.salt_system_fault ? badge(67.8, 92.9, this._config.salt_system_fault, "Verbruik", saltPower) : ""}
 
             ${equipLabel(83.2, 47.4, this._config.heater_power, heaterLabel)}
-            ${this._config.target_temperature ? badge(83.2, 76, this._config.target_temperature, "Doel", target, { onDark: true }) : ""}
-            ${this._config.heater?.power_draw ? badge(83.2, 85.5, this._config.heater.power_draw, "Verbruik", heaterPower, { onDark: true }) : ""}
+            ${this._config.target_temperature ? badge(78.7, 92.9, this._config.target_temperature, "Doel", target) : ""}
+            ${this._config.heater?.power_draw ? badge(87.7, 92.9, this._config.heater.power_draw, "Verbruik", heaterPower) : ""}
           </div>
         </div>
       </div>`;
