@@ -28,9 +28,7 @@ Geen tickets.
 
 ## Review/validatie
 
-| Ticket                        | Onderwerp                                                    | Prioriteit | Blokkade                              |
-| ----------------------------- | ------------------------------------------------------------ | ---------- | ------------------------------------- |
-| [POOL-25](tickets.md#pool-25) | Warmtepomp-anchor gecorrigeerd + comfortscore op illustratie | P1         | Wacht op visuele bevestiging (PR #11) |
+Geen tickets.
 
 ## Klaar
 
@@ -51,6 +49,7 @@ Geen tickets.
 | [POOL-14](tickets.md#pool-14) | Weersvoorspelling-context tonen (afgeschaald)    | P1         |
 | [POOL-23](tickets.md#pool-23) | Instellingen & diagnostiek opdelen in subsecties | P2         |
 | [POOL-24](tickets.md#pool-24) | Warmtepomp-illustratie layout gecorrigeerd       | P1         |
+| [POOL-25](tickets.md#pool-25) | Warmtepomp-anchor + comfortscore op illustratie  | P1         |
 
 ## Geblokkeerd
 

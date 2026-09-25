@@ -472,7 +472,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-25 — Warmtepomp-anchor gecorrigeerd + comfortscore op de illustratie
 
-**Status:** Review/validatie · **Prioriteit:** P1 · **Epic:** Basis
+**Status:** Klaar · **Prioriteit:** P1 · **Epic:** Basis
 
 - **Scope:** tweede visuele review op v0.5.1 wees uit dat POOL-24's fix
   onvoldoende was: het schaal-`<g>` was verankerd op het grondpunt van
@@ -498,3 +498,4 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   rechtsboven, onder "Buiten". Geverifieerd met playwright-screenshots
   van de gerenderde illustratie (licht + donker thema, realistische
   waarden uit de live screenshot) vóór het mergen. `npm run verify` groen.
+  Gemerged via PR #11.
