@@ -74,8 +74,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-5 — Seizoensmodus-backend bouwen in Home Assistant
 
-**Status:** In uitvoering (5/5 automatiseringen live, kaart nog niet
-gekoppeld) · **Prioriteit:** P0 · **Epic:** Seizoensmodus
+**Status:** Klaar · **Prioriteit:** P0 · **Epic:** Seizoensmodus
 
 - **Scope:** de helper, het script en de conditie-edits uit POOL-4
   daadwerkelijk aanmaken in Home Assistant.
@@ -92,10 +91,15 @@ gekoppeld) · **Prioriteit:** P0 · **Epic:** Seizoensmodus
 - **Geen restrisico op 2026-10-01 meer:** met alle 5 automatiseringen op
   de moduskeuze i.p.v. `now().month`, verandert er niets automatisch meer
   op 1 oktober.
-- **Kaart nog niet gekoppeld:** `mode.select`/`mode.apply_script` zijn
-  bewust nog niet ingevuld in de live kaart-config — het uitrolplan zet
-  die koppeling als laatste stap. Nu alle 5 automatiseringen gemigreerd
-  zijn, kan dit gebeuren zodra gewenst.
+- **Kaart gekoppeld (2026-09-28):** op verzoek van de gebruiker is de kaart
+  nu ook effectief live geplaatst — een `custom:pool-dashboard-card` met de
+  volledige, correcte entiteitenmapping (incl. `mode.select`/
+  `mode.apply_script`) toegevoegd bovenaan de "zwembad"-view, als laatste
+  stap van het uitrolplan, zonder de bestaande native kaarten in die view
+  te verwijderen of te wijzigen. Post-write geverifieerd door de HA MCP
+  server. Geen live browser-screenshot mogelijk (dashboard-screenshot
+  beta-functie staat uit) — visuele controle na een harde refresh staat
+  nog bij de gebruiker.
 - **Classifier-observatie:** de eerdere blokkades op deze en op de
   stop-bij-doeluren-duplicaat-automatisering uit POOL-20 bleken geen
   permanente permission-regel te vereisen — beide edits lukten zonder

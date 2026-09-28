@@ -259,4 +259,15 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   screenshot): a changed top-level field, a nested field, and a
   cleared field each produce the expected `config-changed` payload,
   including a cleared field disappearing entirely rather than being
-  stored as an empty string. On its own branch/PR, not merged.
+  stored as an empty string.
+- 2026-09-28 — POOL-26 merged and released as v0.7.0; HACS updated on the
+  live instance.
+- 2026-09-28 — POOL-5's last open item closed: on explicit user request,
+  a `custom:pool-dashboard-card` with the full, correct entity mapping
+  (including `mode.select`/`mode.apply_script`, now that all 5
+  automations are migrated) was added live to the "zwembad" view's grid
+  section, prepended so the existing native cards in that view are
+  untouched. Post-write verified by the HA MCP server. No live browser
+  screenshot was possible (the dashboard-screenshot beta feature is
+  disabled on this instance) — visual confirmation after a hard refresh
+  is on the user.

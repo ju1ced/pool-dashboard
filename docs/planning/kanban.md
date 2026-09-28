@@ -19,9 +19,7 @@ Geen tickets.
 
 ## In uitvoering
 
-| Ticket                      | Onderwerp                                      | Prioriteit | Blokkade                                                                                    |
-| --------------------------- | ---------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------- |
-| [POOL-5](tickets.md#pool-5) | Seizoensmodus-backend bouwen in Home Assistant | P0         | Alle 5 automatiseringen live gemigreerd; kaart nog niet gekoppeld (laatste stap uitrolplan) |
+Geen tickets.
 
 ## Review/validatie
 
@@ -54,6 +52,7 @@ Geen tickets.
 | [POOL-21](tickets.md#pool-21) | Warmtepomp-vermogenskoppeling bevestigen         | P2         |
 | [POOL-20](tickets.md#pool-20) | Automatiseringsconflicten oplossen               | P0         |
 | [POOL-13](tickets.md#pool-13) | Onderhoud-/verbruiksartikelen-tracking           | P2         |
+| [POOL-5](tickets.md#pool-5)   | Seizoensmodus-backend bouwen in Home Assistant   | P0         |
 
 ## Geblokkeerd
 
