@@ -22,6 +22,7 @@ const {
   hasRelevantChange,
   deriveStatus,
   saltSystemFault,
+  frostProtectionStatus,
   historyBars,
   THEME_TOKENS,
   ILLUS_TOKENS,
@@ -340,6 +341,46 @@ test("saltSystemFault: the pool illustration's debietfout pill uses the exact sa
     null,
   );
   assert.equal(saltSystemFault({}, { states: {} }), null);
+});
+
+test("frostProtectionStatus fires below the configured threshold", () => {
+  const config = {
+    water_temperature: "sensor.water",
+    frost_protection_below: 3,
+  };
+  assert.deepEqual(
+    frostProtectionStatus(config, {
+      states: { "sensor.water": { state: "2.4" } },
+    }),
+    { watertemp: 2.4, threshold: 3 },
+  );
+  assert.equal(
+    frostProtectionStatus(config, {
+      states: { "sensor.water": { state: "3" } },
+    }),
+    null,
+  );
+  assert.equal(
+    frostProtectionStatus(config, {
+      states: { "sensor.water": { state: "10" } },
+    }),
+    null,
+  );
+});
+
+test("frostProtectionStatus is never active without both fields configured", () => {
+  assert.equal(
+    frostProtectionStatus(
+      { water_temperature: "sensor.water" },
+      { states: { "sensor.water": { state: "1" } } },
+    ),
+    null,
+  );
+  assert.equal(
+    frostProtectionStatus({ frost_protection_below: 3 }, { states: {} }),
+    null,
+  );
+  assert.equal(frostProtectionStatus({}, { states: {} }), null);
 });
 
 test("resolveIllusMode: theme_mode override wins, else falls back to hass.themes.darkMode", () => {
