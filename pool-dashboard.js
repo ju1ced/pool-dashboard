@@ -435,6 +435,28 @@ function frostProtectionStatus(config, hass) {
 }
 
 /**
+ * Heat-pump inlet/outlet water temperatures, shown together on the
+ * illustration only while the heater is actually running — pairs
+ * `water_temperature` (the canonical inlet reading, POOL-18) with the new
+ * optional `heater.outlet_temperature`. Returns null unless `heater_power`
+ * is on and both readings are live numbers, so the badge never shows a
+ * stale in/out pair from before the heater last ran.
+ */
+function heaterFlowTemperatures(config, hass) {
+  const states = hass?.states || {};
+  const inletEntity = config?.water_temperature;
+  const outletEntity = config?.heater?.outlet_temperature;
+  const powerEntity = config?.heater_power;
+  if (!inletEntity || !outletEntity || !powerEntity) return null;
+  const running = String(states[powerEntity]?.state).toLowerCase() === "on";
+  if (!running) return null;
+  const inlet = parseNumeric(states[inletEntity]?.state);
+  const outlet = parseNumeric(states[outletEntity]?.state);
+  if (inlet === null || outlet === null) return null;
+  return { inlet, outlet };
+}
+
+/**
  * Aggregate the overall pool status from a config + hass snapshot.
  * Pure: reads only `hass.states`. Precedence (highest first):
  *   unavailable > critical > warning > active > normal
@@ -1076,6 +1098,10 @@ class PoolDashboardCard extends CardBase {
     }).length;
 
     const fault = saltSystemFault(this._config, this._hass || { states: {} });
+    const flow = heaterFlowTemperatures(
+      this._config,
+      this._hass || { states: {} },
+    );
 
     const dotFor = (entityId) => {
       if (!entityId) return "muted";
@@ -1274,6 +1300,21 @@ class PoolDashboardCard extends CardBase {
             ${this._config.salt_system_fault ? badge(67.8, 92.9, this._config.salt_system_fault, "Verbruik", saltPower) : ""}
 
             ${equipLabel(83.2, 47.4, this._config.heater_power, heaterLabel)}
+            ${
+              flow
+                ? badge(
+                    83.2,
+                    75,
+                    this._config.heater.outlet_temperature,
+                    "Water in/uit",
+                    {
+                      value: `${flow.inlet} → ${flow.outlet}`,
+                      unit: "°C",
+                      available: true,
+                    },
+                  )
+                : ""
+            }
             ${this._config.target_temperature ? badge(78.7, 92.9, this._config.target_temperature, "Doel", target) : ""}
             ${this._config.heater?.power_draw ? badge(87.7, 92.9, this._config.heater.power_draw, "Verbruik", heaterPower) : ""}
           </div>
@@ -1292,8 +1333,7 @@ class PoolDashboardCard extends CardBase {
         <span class="ic"><ha-icon icon="mdi:snowflake-alert"></ha-icon></span>
         <div>
           <b>Vorstbeveiliging actief</b> Watertemperatuur (${frost.watertemp}°C) onder de
-          ${frost.threshold}°C-drempel — filter blijft draaien, ongeacht modus of
-          overige instellingen.
+          ${frost.threshold}°C-drempel.
         </div>
       </div>`;
   }
@@ -1744,7 +1784,7 @@ class PoolDashboardCard extends CardBase {
          though every descendant here is still position:absolute/percentage
          width and so still has no intrinsic size of its own. min-width:0
          overrides the grid item's default auto min-size regardless. */
-      .pool-hero-row { display:grid; grid-template-columns:1fr 1fr; align-items:start; gap:16px; }
+      .pool-hero-row { display:grid; grid-template-columns:3fr 1fr; align-items:start; gap:16px; }
       .pool-hero-row .pool-illustration, .pool-hero-row .pool-quick-col { min-width:0; }
       .pool-quick-col { display:flex; flex-direction:column; gap:10px; }
       @media (max-width:640px) {
@@ -2015,6 +2055,7 @@ class PoolDashboardCardEditor extends CardBase {
           <div class="fields">
             ${textField("heater.label", "Label op illustratie")}
             ${entityField("heater.power_draw", "Verbruik (W)")}
+            ${entityField("heater.outlet_temperature", "Uitlaat-watertemperatuur")}
             ${entityField("heater.mode", "Modus")}
             ${entityField("heater.compressor", "Compressor")}
             ${entityField("heater.circulate_pump", "Circulatiepomp")}
@@ -2168,6 +2209,7 @@ if (typeof module !== "undefined" && module.exports) {
     deriveStatus,
     saltSystemFault,
     frostProtectionStatus,
+    heaterFlowTemperatures,
     historyBars,
     THEME_TOKENS,
   };

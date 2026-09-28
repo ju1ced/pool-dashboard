@@ -308,12 +308,56 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   the real entity (found via the weather-forecast automation's own
   actions) is now wired into the live card config, and the two deleted
   automations were removed from its `automations` list.
-- **Found, not fixed — needs explicit approval:** the automation that
-  turns the heat pump on has no season-mode condition, unlike the 5
-  automations migrated in POOL-5. Since frost
-  protection can turn the filter on unconditionally in any mode, this
-  automation can currently turn the heat pump on during a frost event in
-  Winter/Onderhoud mode — contradicting that mode's own documented
-  "warmtepomp expliciet uit" promise. This is a behavioral change to a
+- **Found, not fixed — needed explicit approval (resolved by POOL-29
+  below):** the automation that turns the heat pump on had no
+  season-mode condition, unlike the 5 automations migrated in POOL-5.
+  Since frost protection can turn the filter on unconditionally in any
+  mode, this automation could turn the heat pump on during a frost event
+  in Winter/Onderhoud mode — contradicting that mode's own documented
+  "warmtepomp expliciet uit" promise. This was a behavioral change to a
   live automation with equipment-safety implications; not made
-  unilaterally. See chat history for the recommended fix.
+  unilaterally at the time.
+- POOL-27 — new optional `heater.outlet_temperature` field, paired with
+  the existing top-level `water_temperature` (the inlet reading) as a
+  new pure, Node-tested `heaterFlowTemperatures()` helper (same pattern
+  as `saltSystemFault`/`frostProtectionStatus`). Renders a "Water in/uit"
+  badge on the illustration only while `heater_power` is on and both
+  readings are live numbers, so it never shows a stale pair from before
+  the heater last ran. Verified with a Playwright screenshot.
+  **Discovered while testing, not caused by this change:** the existing
+  "Doel"/"Verbruik" badges at the heater already overlap visually once
+  both hold realistic values — `.pi-badge .val` is `white-space:nowrap`
+  with padding, easily wider than the 9%-of-width gap between their
+  fixed positions. Reproduces with just `target_temperature` +
+  `heater.power_draw` configured, no new fields involved — filed as
+  POOL-28 rather than silently fixed, since a real solution needs a
+  layout decision (dynamic spacing vs. two-layer badges vs. more compact
+  values), not a quick patch.
+- POOL-28 — fixed, per user suggestion: `.pool-hero-row`'s
+  illustration/quick-controls ratio changed from 1:1 to 3:1
+  (`grid-template-columns: 3fr 1fr`) at full width, giving the
+  illustration's badge row enough room that "Doel"/"Verbruik" no longer
+  overlap. Under 640px the existing single-column fallback is unchanged.
+  Verified with a full-width (1100px) Playwright screenshot.
+- POOL-29 — the user clarified that Winter mode means the pool is
+  winterized: the physical pump is disconnected, so nothing should run
+  automatically — including frost protection, which has no equipment
+  left to protect. This reverses an explicit requirement from the
+  originally approved design (`proposal.md` §5.2 /
+  `season-mode-backend.md`: frost protection "always active, regardless
+  of mode"). Two live automations changed: the main filter-start
+  automation's frost-protection trigger now excludes `'Winter'`
+  specifically (still active in Zomer/Onderhoud/Handmatig); the
+  heater-on automation — which had no season-mode condition at all,
+  unlike the 5 automations migrated in POOL-5 — now gets one, matching
+  the same Zomer/Handmatig pattern, closing the gap where frost
+  protection turning the filter on could indirectly turn the heat pump
+  on during a Winter frost event. Automation descriptions, the live
+  `mode.impact.Winter` text, the `automations`-list summaries, and
+  `season-mode-backend.md` (an addendum, still fictional IDs) were all
+  updated to match. The card's `frost_protection_below` banner (POOL-8)
+  no longer claims "regardless of mode" — the card deliberately has no
+  mode-awareness, so that claim was removed rather than made
+  mode-conditional. `warmtepomp_uitschakelen` (a stop) was deliberately
+  left unchanged, per the existing design principle that a stop is never
+  gated by mode, only a start.

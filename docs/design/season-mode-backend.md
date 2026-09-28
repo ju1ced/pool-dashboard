@@ -133,6 +133,19 @@ action:
 Vorstbeveiliging (aparte trigger, <3°C) in dezelfde automatisering **blijft ongewijzigd** en dus
 ook actief tijdens `'Onderhoud'`/`'Winter'` — expliciet vereist door `proposal.md` §5.2.
 
+> **Addendum (2026-09-28) — herzien voor `'Winter'`:** de gebruiker heeft verduidelijkt dat
+> wintermodus in de praktijk betekent dat het zwembad gewinteriseerd wordt: de fysieke pomp wordt
+> dan verwijderd/losgekoppeld. Vorstbeveiliging via de filterpomp heeft dan geen enkel nut meer —
+> er is geen circulatie mogelijk om te beschermen. `proposal.md` §5.2's oorspronkelijke vereiste
+> ("altijd actief, ongeacht modus") ging uit van fysiek aanwezige, werkende apparatuur in elke
+> modus, wat voor `'Winter'` specifiek niet meer klopt. De vorstbeveiligingstrigger moet daarom
+> **wél nog steeds gelden in `'Onderhoud'`/`'Handmatig'`** (apparatuur daar verondersteld aanwezig,
+> enkel handmatig/tijdelijk uitgeschakeld), maar **niet meer in `'Winter'`**. Om dezelfde reden
+> moet ook de warmtepomp-inschakel-automatisering (buiten de oorspronkelijke scope van dit
+> document — zie §3's tabel, die enkel de 5 filter-gerelateerde automatiseringen dekt) een
+> `'Winter'`-uitsluiting krijgen, anders kan vorstbeveiliging die filter aanzet indirect ook de
+> warmtepomp aanzetten.
+
 ## 4. Wat dit voorstel bewust niet doet
 
 - **Ruimt de bestaande conflicten niet op** (dubbele middernacht-stop, race op 08:00, dubbele
