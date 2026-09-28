@@ -82,6 +82,26 @@ back to a plain display-only row. `ph`, `orp` and `salinity` each also get a
 7-day bar graph in the **Historie** group when configured, same as the
 power-draw sensors under `filter`/`heater`.
 
+## `maintenance` — display-only upkeep reminders (opt-in)
+
+| Field                                       | Description                                                               |
+| ------------------------------------------- | ------------------------------------------------------------------------- |
+| `maintenance.filter_cleaned`                | Date of last filter cleaning, `input_datetime.*`.                         |
+| `maintenance.filter_cleaning_interval_days` | Optional number. When set, the row is flagged once elapsed days reach it. |
+| `maintenance.salt_cell_replaced`            | Date of last salt-cell replacement, `input_datetime.*`.                   |
+| `maintenance.salt_cell_lifespan_days`       | Optional number. Same flag behaviour as `filter_cleaning_interval_days`.  |
+
+Shown in **Instellingen** as "N dagen geleden" — pure elapsed-day arithmetic
+(`daysSince()`), never a guessed or synthesized "do this now" judgement. The
+optional `_interval_days`/`_lifespan_days` number just flags the row once
+elapsed days reach it (`maintenanceOverdue()`), the same simple
+point-in-time-threshold-for-display pattern as
+`salt_system.fault_below_watts`. Nothing renders unless the corresponding
+date entity is configured; an unset date shows "Niet ingesteld", not a
+guess. Neither sets up a reminder, notification, or interval timer — see
+`docs/planning/tickets.md#pool-16` for why that stays an HA automation's
+job, not this card's.
+
 ## `mode` — season/winter switch (opt-in, requires backend)
 
 ```yaml
@@ -101,9 +121,15 @@ mode:
 The mode block is **disabled and shows an explanation** unless both
 `mode.select` and `mode.apply_script` are configured — this backend
 (`input_select.pool_season_mode` + `script.pool_apply_season_mode` +
-condition edits in 5 automations) is not part of this repository and needs a
-separate approval; see `docs/design/proposal.md` §5/§9 and the full technical
-spec in `docs/design/season-mode-backend.md`.
+condition edits in 5 automations) is not built by this repository; see
+`docs/design/proposal.md` §5/§9 and the full technical spec in
+`docs/design/season-mode-backend.md`. As of POOL-5, the helper, script and
+4 of 5 automation condition edits exist live in Home Assistant (the 5th is
+still on its old logic — see `docs/planning/tickets.md#pool-5`), but
+`mode.select`/`mode.apply_script` are deliberately **not yet** wired into
+this card's live config — per the rollout plan in
+`season-mode-backend.md`, wiring the card in is the last step, done only
+once all 5 automations are migrated.
 
 When configured, clicking a mode button shows a confirmation dialog with the
 matching `mode.impact.<value>` text (verbatim, never synthesized — if a

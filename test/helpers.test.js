@@ -10,6 +10,8 @@ const {
   actionServiceFor,
   setValueDomain,
   estimatedCostPerHour,
+  daysSince,
+  maintenanceOverdue,
   shouldConfirm,
   resolveThemeMode,
   modeImpactSummary,
@@ -188,6 +190,12 @@ test("collectEntityIds gathers every nested entity id", () => {
     filter: { pump: "switch.pump", catchup_mode: "input_boolean.catchup" },
     salt_system: { power: "switch.salt", fault_below_watts: 15 },
     water_quality: { ph: "sensor.ph" },
+    maintenance: {
+      filter_cleaned: "input_datetime.filter_cleaned",
+      filter_cleaning_interval_days: 90,
+      salt_cell_replaced: "input_datetime.salt_cell_replaced",
+      salt_cell_lifespan_days: 1095,
+    },
     mode: { select: "input_select.mode", apply_script: "script.apply" },
     automations: [{ entity: "automation.filter_start" }],
   };
@@ -200,8 +208,12 @@ test("collectEntityIds gathers every nested entity id", () => {
   assert.ok(ids.includes("input_boolean.pv"));
   assert.ok(ids.includes("input_datetime.target_updated"));
   assert.ok(ids.includes("sensor.energy_price"));
+  assert.ok(ids.includes("input_datetime.filter_cleaned"));
+  assert.ok(ids.includes("input_datetime.salt_cell_replaced"));
   // the numeric threshold must never be treated as an entity id
   assert.ok(!ids.includes(15));
+  assert.ok(!ids.includes(90));
+  assert.ok(!ids.includes(1095));
   assert.equal(ids.length, new Set(ids).size);
 });
 
@@ -453,6 +465,34 @@ test("estimatedCostPerHour returns null on missing/invalid inputs", () => {
   assert.equal(estimatedCostPerHour(NaN, 0.3), null);
   assert.equal(estimatedCostPerHour(-5, 0.3), null);
   assert.equal(estimatedCostPerHour(1500, -0.1), null);
+});
+
+test("daysSince computes whole elapsed days from a date string", () => {
+  const now = new Date("2026-09-28T12:00:00Z");
+  assert.equal(daysSince("2026-09-18", now), 10);
+  assert.equal(daysSince("2026-09-28T12:00:00Z", now), 0);
+});
+
+test("daysSince returns null for missing/invalid/future dates", () => {
+  const now = new Date("2026-09-28T12:00:00Z");
+  assert.equal(daysSince(null, now), null);
+  assert.equal(daysSince(undefined, now), null);
+  assert.equal(daysSince("not-a-date", now), null);
+  assert.equal(daysSince("2026-10-05", now), null);
+});
+
+test("maintenanceOverdue flags once elapsed days reach the interval", () => {
+  assert.equal(maintenanceOverdue(89, 90), false);
+  assert.equal(maintenanceOverdue(90, 90), true);
+  assert.equal(maintenanceOverdue(200, 90), true);
+});
+
+test("maintenanceOverdue is never true without a valid days count or interval", () => {
+  assert.equal(maintenanceOverdue(null, 90), false);
+  assert.equal(maintenanceOverdue(200, null), false);
+  assert.equal(maintenanceOverdue(200, 0), false);
+  assert.equal(maintenanceOverdue(200, -5), false);
+  assert.equal(maintenanceOverdue(200, NaN), false);
 });
 
 test("deriveStatus: a misconfigured (missing) required field is treated as unavailable", () => {
