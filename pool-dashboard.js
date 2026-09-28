@@ -1318,90 +1318,103 @@ class PoolDashboardCard extends CardBase {
             }
 
             ${equipLabel(19.2, 58.5, this._config.filter?.pump, pumpLabel)}
-            ${
-              this._config.filter?.hours_today ||
-              this._config.filter?.power_draw
-                ? badge(
-                    23.75,
-                    92.9,
-                    this._config.filter?.hours_today ||
-                      this._config.filter?.power_draw,
-                    "Filter",
-                    {
-                      value: [
-                        this._config.filter?.hours_today
-                          ? `${filterHours.value}${this._config.filter?.hours_target ? `/${filterTarget.value}` : ""}h`
-                          : null,
-                        this._config.filter?.power_draw
-                          ? `${pumpPower.value}W`
-                          : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · "),
-                      unit: "",
-                      available: true,
-                    },
-                  )
-                : ""
-            }
-
             ${equipLabel(51.9, 56.2, this._config.salt_system?.power, saltLabel)}
             ${fault ? `<div class="pi-warn-pill" style="${pos(63.9, 57.6)}">▲ debietfout</div>` : ""}
-            ${this._config.water_quality?.ph ? badge(40.4, 92.9, this._config.water_quality.ph, "pH", ph) : ""}
-            ${this._config.water_quality?.orp ? badge(49.5, 92.9, this._config.water_quality.orp, "ORP", orp) : ""}
-            ${
-              this._config.water_quality?.salinity ||
-              this._config.salt_system_fault
-                ? badge(
-                    63.25,
-                    92.9,
-                    this._config.water_quality?.salinity ||
-                      this._config.salt_system_fault,
-                    "Zout",
-                    {
-                      value: [
-                        this._config.water_quality?.salinity
-                          ? `${salinity.value}${salinity.unit ? ` ${salinity.unit}` : ""}`
-                          : null,
-                        this._config.salt_system_fault
-                          ? `${saltPower.value}W`
-                          : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · "),
-                      unit: "",
-                      available: true,
-                    },
-                  )
-                : ""
-            }
-
             ${equipLabel(83.2, 47.4, this._config.heater_power, heaterLabel)}
-            ${
-              this._config.target_temperature || this._config.heater?.power_draw
-                ? badge(
-                    83.2,
-                    92.9,
+            ${(() => {
+              // Bottom-row badges are spaced dynamically over however many of
+              // these five actually render, instead of 5 fixed percentages
+              // sized for the fullest case — a fixed layout either wastes
+              // space (few badges) or collides (many badges, since combined
+              // values like "3.2/8h · 370W" need more room than a single
+              // short label ever did). See POOL-28.
+              const entries = [];
+              if (
+                this._config.filter?.hours_today ||
+                this._config.filter?.power_draw
+              ) {
+                entries.push({
+                  entity:
+                    this._config.filter?.hours_today ||
+                    this._config.filter?.power_draw,
+                  label: "Filter",
+                  value: [
+                    this._config.filter?.hours_today
+                      ? `${filterHours.value}${this._config.filter?.hours_target ? `/${filterTarget.value}` : ""}h`
+                      : null,
+                    this._config.filter?.power_draw
+                      ? `${pumpPower.value}W`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · "),
+                });
+              }
+              if (this._config.water_quality?.ph) {
+                entries.push({
+                  entity: this._config.water_quality.ph,
+                  label: "pH",
+                  value: `${ph.value}${ph.unit ? ` ${ph.unit}` : ""}`,
+                });
+              }
+              if (this._config.water_quality?.orp) {
+                entries.push({
+                  entity: this._config.water_quality.orp,
+                  label: "ORP",
+                  value: `${orp.value}${orp.unit ? ` ${orp.unit}` : ""}`,
+                });
+              }
+              if (
+                this._config.water_quality?.salinity ||
+                this._config.salt_system_fault
+              ) {
+                entries.push({
+                  entity:
+                    this._config.water_quality?.salinity ||
+                    this._config.salt_system_fault,
+                  label: "Zout",
+                  value: [
+                    this._config.water_quality?.salinity
+                      ? `${salinity.value}${salinity.unit ? ` ${salinity.unit}` : ""}`
+                      : null,
+                    this._config.salt_system_fault
+                      ? `${saltPower.value}W`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · "),
+                });
+              }
+              if (
+                this._config.target_temperature ||
+                this._config.heater?.power_draw
+              ) {
+                entries.push({
+                  entity:
                     this._config.target_temperature ||
-                      this._config.heater?.power_draw,
-                    "Doel",
-                    {
-                      value: [
-                        this._config.target_temperature
-                          ? `${target.value}°`
-                          : null,
-                        this._config.heater?.power_draw
-                          ? `${heaterPower.value}W`
-                          : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · "),
-                      unit: "",
-                      available: true,
-                    },
-                  )
-                : ""
-            }
+                    this._config.heater?.power_draw,
+                  label: "Doel",
+                  value: [
+                    this._config.target_temperature ? `${target.value}°` : null,
+                    this._config.heater?.power_draw
+                      ? `${heaterPower.value}W`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · "),
+                });
+              }
+              if (!entries.length) return "";
+              return `<div class="pi-bottom-row">${entries
+                .map(
+                  (e) => `
+                <div class="pi-badge" data-info="${escapeHtml(e.entity)}">
+                  <span class="lbl">${escapeHtml(e.label)}</span>
+                  <span class="val">${escapeHtml(e.value)}</span>
+                </div>`,
+                )
+                .join("")}</div>`;
+            })()}
           </div>
         </div>
       </div>`;
@@ -1881,6 +1894,8 @@ class PoolDashboardCard extends CardBase {
       .pi-overlay { position:absolute; inset:0; }
 
       .pi-badge { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:1px; cursor:pointer; }
+      .pi-bottom-row { position:absolute; left:4%; right:4%; bottom:2.5%; display:flex; flex-wrap:wrap; justify-content:center; align-items:flex-end; gap:3px 8px; }
+      .pi-bottom-row .pi-badge { position:static; transform:none; }
       .pi-badge .lbl { font-size:9px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--pd-text-muted); }
       .pi-badge .val { font-weight:700; font-size:11px; color:var(--pd-illus-screen-text); background:var(--pd-illus-screen);
         border-radius:6px; padding:2px 5px; font-variant-numeric:tabular-nums; white-space:nowrap; }

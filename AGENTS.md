@@ -393,3 +393,16 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   slightly (9px/11px) for extra breathing room. Verified with a
   Playwright screenshot at a worst-case config (every bottom-row badge
   populated at once) at 900px width — no overlap.
+- POOL-28 v4 (user report after live testing: still overlapping at
+  moderate widths). v3's combined badges were still `position:absolute`
+  at fixed 12–88% slots — a real, only-tested-at-900px gap, since the
+  wider combined values ("3.2/8h · 370W") needed more room than those
+  fixed slots gave them once the illustration got narrower than ~900px
+  card width. The actual fix: converted the bottom-row badges to a real
+  CSS flex-wrap row (`.pi-bottom-row`, badges as plain flex children
+  instead of individually absolutely-positioned) — they now wrap to a
+  second line automatically whenever they don't fit one, which rules out
+  overlap at any width or content length by construction, instead of by
+  picking percentages that happened to work at one tested size. Verified
+  with Playwright screenshots at both 700px (wraps to two lines, no
+  overlap) and 1100px (stays one clean line).

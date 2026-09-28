@@ -717,6 +717,21 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   playwright-screenshot bij een worst-case configuratie (alle
   bodemrij-badges tegelijk ingevuld) op 900px breedte: geen overlap meer.
   `npm run verify` groen (41/41 tests).
+- **Herzien (v4, echte structurele fix):** v3's samengevoegde badges
+  bleven nog steeds op vaste percentages gepositioneerd — bij matige
+  breedtes (bv. ~700px kaartbreedte, ~340px illustratie) waren de
+  samengevoegde waarden alsnog te breed voor hun vaste 12–88%-slots en
+  overlapten opnieuw (door de gebruiker gemeld na live testen). De
+  eigenlijke oorzaak was het gebruik van vaste percentage-posities voor
+  inhoud van variabele breedte. Vervangen door een echte CSS
+  flex-wrap-rij (`.pi-bottom-row`): de bodemrij-badges zijn niet langer
+  individueel `position:absolute` op een berekende `left`, maar gewone
+  flex-items die **automatisch naar een tweede regel wrappen** zodra ze
+  niet allemaal op één rij passen — gegarandeerd geen overlap, op
+  eender welke breedte, ongeacht hoeveel velden geconfigureerd zijn of
+  hoe lang de waarden worden. Geverifieerd met playwright-screenshots op
+  zowel 700px (wrapt naar 2 regels, geen overlap) als 1100px (blijft één
+  nette regel). `npm run verify` groen (41/41 tests).
 
 ---
 
