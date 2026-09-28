@@ -271,3 +271,21 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   screenshot was possible (the dashboard-screenshot beta feature is
   disabled on this instance) — visual confirmation after a hard refresh
   is on the user.
+- POOL-7 — new "Modus" badge on the pool illustration (top-right, stacked
+  under "Buiten"/"Comfort") showing `mode.select`'s live raw state,
+  reusing the existing `_measure()`/`badge()` helpers. No render unless
+  `mode.select` is configured; no per-value icon guessing, since the
+  option strings are author-chosen and not part of the fixed
+  entity-key-contract.
+- POOL-8 — new optional top-level `frost_protection_below` field (°C). A
+  new pure, Node-tested `frostProtectionStatus()` helper (same
+  simple-threshold-for-display pattern as `saltSystemFault`) drives an
+  explicit info banner right under the status banner whenever
+  `water_temperature` is live and below it, independent of mode or any
+  other setting — the automation's own unconditional frost-protection
+  trigger stays the source of truth, the card only reflects it. Both
+  verified with a Playwright screenshot of the rendered card (frost
+  banner + Winter mode badge, real-shaped config). `npm run verify`
+  green (39/39 tests). This closes out the full backlog — the only
+  remaining backlog item (POOL-16) was already reassessed as out of
+  scope for a card, not left undone.

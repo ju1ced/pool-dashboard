@@ -135,14 +135,19 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-7 — Visuele indicator van actieve seizoensmodus op de illustratie
 
-**Status:** Backlog · **Prioriteit:** P1 · **Epic:** Seizoensmodus
+**Status:** Klaar · **Prioriteit:** P1 · **Epic:** Seizoensmodus
 
 - **Scope:** klein badge/icoon op de zwembad-scène dat de huidige
   seizoensmodus toont.
-- **Afhankelijkheden:** heeft weinig waarde vóór POOL-5 (geblokkeerd) af is
-  — de modus-entiteit bestaat dan pas echt.
+- **Afhankelijkheden:** POOL-5 (klaar).
 - **Acceptatiecriteria:** badge volgt live de modus-entiteit; geen render
   wanneer `mode.select` niet geconfigureerd is.
+- **Afgerond:** nieuwe "Modus"-badge op de illustratie (rechtsboven,
+  gestapeld onder "Buiten"/"Comfort"), hergebruikt de bestaande
+  `_measure()`/`badge()`-helpers — toont de rauwe entiteitswaarde, geen
+  per-waarde icoon-gok (de opties van `mode.select` zijn auteur-gekozen
+  vrije tekst, geen vast entity-key-contract). Geverifieerd met een
+  playwright-screenshot van de gerenderde kaart. `npm run verify` groen.
 
 ---
 
@@ -150,14 +155,25 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-8 — Vorstbeveiliging-status expliciet zichtbaar maken
 
-**Status:** Backlog · **Prioriteit:** P1 · **Epic:** Seizoensmodus
+**Status:** Klaar · **Prioriteit:** P1 · **Epic:** Seizoensmodus
 
 - **Scope:** in wintermodus blijft vorstbeveiliging actief (zie
   `docs/design/season-mode-backend.md`) — dat moet duidelijk zichtbaar zijn
   in de kaart, niet enkel impliciet.
-- **Afhankelijkheden:** heeft weinig waarde vóór POOL-5 (geblokkeerd) af is.
+- **Afhankelijkheden:** POOL-5 (klaar).
 - **Acceptatiecriteria:** expliciete tekst/indicator wanneer vorstbeveiliging
   actief is, ook wanneer de rest van het systeem uit staat.
+- **Afgerond:** nieuw optioneel top-level `frost_protection_below`-veld
+  (°C). Wanneer ingesteld en `water_temperature` eronder komt, toont de
+  kaart een expliciete infobanner net onder de statusbanner — zelfde
+  eenvoudige drempel-voor-weergave-patroon als
+  `salt_system.fault_below_watts`, via een nieuwe pure, Node-geteste
+  `frostProtectionStatus()`-helper. De eigen onvoorwaardelijke
+  vorstbeveiligingstrigger van de automatisering blijft de bron van waarheid
+  — de kaart dupliceert die logica niet, enkel reflecteert ze. Renderen
+  gebeurt onafhankelijk van modus of andere instellingen. Geverifieerd
+  met een playwright-screenshot van de gerenderde kaart. `npm run verify`
+  groen.
 
 ---
 
@@ -582,8 +598,7 @@ Resources]"`) toen dit autonoom draaide; identieke edit (acties leeg)
 
 ## POOL-26 — GUI-editor uitgebreid naar alle configvelden
 
-**Status:** Review/validatie (PR open, niet gemerged) · **Prioriteit:** P1
-· **Epic:** Kaart-UX
+**Status:** Klaar · **Prioriteit:** P1 · **Epic:** Kaart-UX
 
 - **Scope:** de kaart-editor toonde enkel titel/bevestiging/thema in de
   GUI — elke entiteit (verplicht of optioneel) moest via YAML ingevuld
@@ -612,5 +627,5 @@ Resources]"`) toen dit autonoom draaide; identieke edit (acties leeg)
   enkel een screenshot): een gewijzigd top-level veld, een genest veld, en
   een leeggemaakt veld leveren elk de verwachte `config-changed`-payload
   op, inclusief het volledig verdwijnen van een leeggemaakt veld i.p.v.
-  een lege string. `npm run verify` groen (37/37 tests). PR open, nog niet
-  gemerged.
+  een lege string. `npm run verify` groen (37/37 tests). Gemerged via
+  PR #13, gereleased als v0.7.0.

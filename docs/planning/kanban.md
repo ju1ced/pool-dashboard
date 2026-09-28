@@ -7,11 +7,9 @@ Kanban-bord-Artifact — zie `AGENTS.md`/changelog voor de aanleiding.
 
 ## Backlog
 
-| Ticket                        | Onderwerp                            | Prioriteit | Afhankelijkheid                                                           |
-| ----------------------------- | ------------------------------------ | ---------- | ------------------------------------------------------------------------- |
-| [POOL-7](tickets.md#pool-7)   | Modus-indicator op de illustratie    | P1         | Weinig waarde vóór POOL-5                                                 |
-| [POOL-8](tickets.md#pool-8)   | Vorstbeveiliging expliciet zichtbaar | P1         | Weinig waarde vóór POOL-5                                                 |
-| [POOL-16](tickets.md#pool-16) | Meldingen/alerts-voorkeuren          | P1         | Herbeoordeeld: geen goede fit voor een kaart, hoort bij HA-automatisering |
+| Ticket                        | Onderwerp                   | Prioriteit | Afhankelijkheid                                                           |
+| ----------------------------- | --------------------------- | ---------- | ------------------------------------------------------------------------- |
+| [POOL-16](tickets.md#pool-16) | Meldingen/alerts-voorkeuren | P1         | Herbeoordeeld: geen goede fit voor een kaart, hoort bij HA-automatisering |
 
 ## Gepland
 
@@ -23,9 +21,7 @@ Geen tickets.
 
 ## Review/validatie
 
-| Ticket                        | Onderwerp                                    | Prioriteit |
-| ----------------------------- | -------------------------------------------- | ---------- |
-| [POOL-26](tickets.md#pool-26) | GUI-editor uitgebreid naar alle configvelden | P1         |
+Geen tickets.
 
 ## Klaar
 
@@ -53,6 +49,9 @@ Geen tickets.
 | [POOL-20](tickets.md#pool-20) | Automatiseringsconflicten oplossen               | P0         |
 | [POOL-13](tickets.md#pool-13) | Onderhoud-/verbruiksartikelen-tracking           | P2         |
 | [POOL-5](tickets.md#pool-5)   | Seizoensmodus-backend bouwen in Home Assistant   | P0         |
+| [POOL-26](tickets.md#pool-26) | GUI-editor uitgebreid naar alle configvelden     | P1         |
+| [POOL-7](tickets.md#pool-7)   | Modus-indicator op de illustratie                | P1         |
+| [POOL-8](tickets.md#pool-8)   | Vorstbeveiliging expliciet zichtbaar             | P1         |
 
 ## Geblokkeerd
 

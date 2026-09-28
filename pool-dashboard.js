@@ -411,6 +411,30 @@ function saltSystemFault(config, hass) {
 }
 
 /**
+ * Whether frost protection is currently active — a simple point-in-time
+ * threshold on `water_temperature`, purely for display (POOL-8), same
+ * pattern as `saltSystemFault`. The automation's own unconditional
+ * frost-protection trigger stays the source of truth; this never gates or
+ * duplicates that logic, only reflects it. Returns null unless both
+ * `water_temperature` and the optional `frost_protection_below` threshold
+ * are configured and the reading is a live number below it.
+ */
+function frostProtectionStatus(config, hass) {
+  const states = hass?.states || {};
+  const waterEntity = config?.water_temperature;
+  const threshold = config?.frost_protection_below;
+  if (
+    !waterEntity ||
+    typeof threshold !== "number" ||
+    !Number.isFinite(threshold)
+  )
+    return null;
+  const watertemp = parseNumeric(states[waterEntity]?.state);
+  if (watertemp === null || watertemp >= threshold) return null;
+  return { watertemp, threshold };
+}
+
+/**
  * Aggregate the overall pool status from a config + hass snapshot.
  * Pure: reads only `hass.states`. Precedence (highest first):
  *   unavailable > critical > warning > active > normal
@@ -917,6 +941,7 @@ class PoolDashboardCard extends CardBase {
           <h2>🏊 ${escapeHtml(this._config.title || "Zwembad")}</h2>
         </div>
         ${this._renderStatusBanner(status)}
+        ${this._renderFrostProtectionBanner()}
         ${overrides.map((o) => this._renderOverrideBanner(o)).join("")}
         <div class="pool-hero-row">
           ${this._renderPoolIllustration()}
@@ -1013,6 +1038,10 @@ class PoolDashboardCard extends CardBase {
       digits: 0,
       unitOverride: "/ 100",
     });
+    // POOL-7: badge showing the current season-mode state as-is, never a
+    // guessed/icon-per-value mapping — mode.select's option strings are
+    // author-configured and not part of the fixed entity-key-contract.
+    const mode = this._measure(this._config.mode?.select);
     const target = this._measure(this._config.target_temperature);
     const ph = this._measure(this._config.water_quality?.ph);
     const orp = this._measure(this._config.water_quality?.orp, {
@@ -1224,6 +1253,7 @@ class PoolDashboardCard extends CardBase {
             </div>
             ${this._config.ambient_temperature ? badge(92.3, 14, this._config.ambient_temperature, "Buiten", ambient) : ""}
             ${this._config.comfort_score ? badge(92.3, 32, this._config.comfort_score, "Comfort", comfort) : ""}
+            ${this._config.mode?.select ? badge(92.3, 50, this._config.mode.select, "Modus", mode) : ""}
 
             ${equipLabel(19.2, 58.5, this._config.filter?.pump, pumpLabel)}
             ${
@@ -1247,6 +1277,23 @@ class PoolDashboardCard extends CardBase {
             ${this._config.target_temperature ? badge(78.7, 92.9, this._config.target_temperature, "Doel", target) : ""}
             ${this._config.heater?.power_draw ? badge(87.7, 92.9, this._config.heater.power_draw, "Verbruik", heaterPower) : ""}
           </div>
+        </div>
+      </div>`;
+  }
+
+  _renderFrostProtectionBanner() {
+    const frost = frostProtectionStatus(
+      this._config,
+      this._hass || { states: {} },
+    );
+    if (!frost) return "";
+    return `
+      <div class="frost-banner">
+        <span class="ic"><ha-icon icon="mdi:snowflake-alert"></ha-icon></span>
+        <div>
+          <b>Vorstbeveiliging actief</b> Watertemperatuur (${frost.watertemp}°C) onder de
+          ${frost.threshold}°C-drempel — filter blijft draaien, ongeacht modus of
+          overige instellingen.
         </div>
       </div>`;
   }
@@ -1747,6 +1794,11 @@ class PoolDashboardCard extends CardBase {
       .override-banner b { color:var(--pd-text); }
       .override-banner .back { margin-top:6px; display:inline-flex; font-size:11.5px; font-weight:700; color:var(--pd-info); background:none; border:none; padding:0; }
 
+      .frost-banner { display:flex; align-items:flex-start; gap:9px; background:color-mix(in srgb, var(--pd-info) 14%, transparent);
+        border:1px solid color-mix(in srgb, var(--pd-info) 36%, transparent); border-radius:12px; padding:10px 11px; font-size:12px; color:var(--pd-text-muted); }
+      .frost-banner .ic { color:var(--pd-info); }
+      .frost-banner b { color:var(--pd-text); }
+
       .section-label { font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--pd-text-muted); margin:2px 0 -4px; }
       .controls { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
       .ctrl { background:var(--pd-bg-raised); border:1px solid var(--pd-border); border-radius:13px; padding:10px 11px; display:flex; flex-direction:column; gap:6px; }
@@ -1942,6 +1994,7 @@ class PoolDashboardCardEditor extends CardBase {
             ${entityField("pv_mode", "PV-modus")}
             ${entityField("target_temperature_updated", "Doeltemperatuur laatst aangepast")}
             ${entityField("energy_price", "Energieprijs")}
+            ${numberField("frost_protection_below", "Vorstbeveiliging onder (°C)")}
           </div>
         </details>
 
@@ -2114,6 +2167,7 @@ if (typeof module !== "undefined" && module.exports) {
     hasRelevantChange,
     deriveStatus,
     saltSystemFault,
+    frostProtectionStatus,
     historyBars,
     THEME_TOKENS,
   };
