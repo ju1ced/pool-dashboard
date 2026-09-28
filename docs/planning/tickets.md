@@ -662,7 +662,7 @@ Resources]"`) toen dit autonoom draaide; identieke edit (acties leeg)
 
 ## POOL-28 — Doel-/Verbruik-badges overlappen visueel bij de warmtepomp
 
-**Status:** Backlog · **Prioriteit:** P1 · **Epic:** Basis
+**Status:** Klaar · **Prioriteit:** P1 · **Epic:** Basis
 
 - **Scope:** ontdekt tijdens het testen van POOL-27 (niet door dat ticket
   veroorzaakt — reproduceert ook zonder de nieuwe inlet/uitlaat-badge,
@@ -673,15 +673,56 @@ Resources]"`) toen dit autonoom draaide; identieke edit (acties leeg)
   tonen — `.pi-badge .val` heeft `white-space:nowrap` plus
   `padding:3px 8px`, dus een waarde als "1450 W" is makkelijk breder dan
   de 9%-tussenruimte (~40px in een illustratie van ~450px breed) toelaat.
-  Waarschijnlijk ook zichtbaar bij andere dicht-bij-elkaar-liggende
-  badge-paren in dezelfde rij (bv. Filter/Verbruik-filter, Zout/
-  Verbruik-zout) zodra hun waarden lang genoeg zijn.
 - **Afhankelijkheden:** geen.
 - **Acceptatiecriteria:** geen visuele overlap tussen naburige badges in
   de onderste rij bij realistische waarden (3-4 cijfers), getest met een
   playwright-screenshot.
-- **Voorstel (niet geïmplementeerd):** ofwel de badge-rij dynamisch
-  verdelen over enkel de daadwerkelijk geconfigureerde badges i.p.v.
-  vaste percentages voor 8 mogelijke slots, ofwel de rij in twee lagen
-  splitsen, ofwel labels/waarden compacter maken op deze specifieke rij.
-  Vereist een ontwerpkeuze — niet eenzijdig doorgevoerd.
+- **Afgerond:** op voorstel van de gebruiker — bij volledige breedte
+  (desktop) gaat `.pool-hero-row`'s verhouding illustratie/snelle-
+  bediening van 1:1 naar 3:1 (`grid-template-columns: 3fr 1fr`), wat de
+  illustratie beduidend breder maakt en zo de badges meer ruimte geeft.
+  Onder 640px blijft de bestaande enkele-kolom-fallback ongewijzigd.
+  Geverifieerd met een playwright-screenshot op volledige breedte (1100px):
+  Doel/Verbruik overlappen niet meer. Geen dynamische
+  badge-herverdeling geïmplementeerd — deze eenvoudigere fix loste het
+  concrete probleem al op.
+
+---
+
+<a id="pool-29"></a>
+
+## POOL-29 — Wintermodus: geen automatische actie, ook geen vorstbeveiliging
+
+**Status:** Klaar · **Prioriteit:** P0 · **Epic:** Seizoensmodus
+
+- **Scope:** de gebruiker verduidelijkte dat wintermodus in de praktijk
+  betekent dat het zwembad gewinteriseerd wordt — de fysieke pomp wordt
+  losgekoppeld. Er mag dan niets automatisch aan gaan, ook de
+  vorstbeveiligingstrigger niet (die heeft toch geen nut zonder pomp).
+  Dit herziet een expliciete vereiste uit het oorspronkelijk goedgekeurde
+  ontwerp (`docs/design/season-mode-backend.md`, "vorstbeveiliging blijft
+  altijd actief, ongeacht modus").
+- **Afhankelijkheden:** POOL-5 (klaar) — bouwt voort op de live
+  moduskeuze-helper.
+- **Acceptatiecriteria:** in Wintermodus start geen enkele
+  filter/warmtepomp/zoutsysteem-actie automatisch, inclusief
+  vorstbeveiliging; in Zomer/Onderhoud/Handmatig blijft vorstbeveiliging
+  wél actief (apparatuur daar verondersteld fysiek aanwezig).
+- **Afgerond:** twee automatiseringen aangepast. De
+  vorstbeveiligingstrigger van de hoofd-filterstart-automatisering gaat
+  van een onvoorwaardelijke `true`-conditie naar `modus != 'Winter'`. De
+  warmtepomp-inschakel-automatisering (die nooit een seizoensconditie had
+  — buiten de oorspronkelijke scope van de 5 POOL-5-automatiseringen)
+  kreeg een nieuwe conditie die haar beperkt tot Zomer/Handmatig, zelfde
+  patroon als de andere seizoensgebonden automatiseringen. Dit voorkomt
+  dat vorstbeveiliging (die de filter aanzet) indirect ook de warmtepomp
+  zou kunnen aanzetten tijdens een vorstsituatie in wintermodus.
+  Automatisering-beschrijvingen, het live `mode.impact.Winter`-veld op de
+  kaart, de `automations`-lijst-samenvattingen en
+  `docs/design/season-mode-backend.md` (addendum, fictieve ID's) zijn
+  allemaal bijgewerkt om het nieuwe gedrag te weerspiegelen. De kaart's
+  eigen `frost_protection_below`-banner (POOL-8) claimt niet langer
+  "ongeacht modus" — de kaart heeft bewust geen moduskennis, dus die
+  claim is geschrapt i.p.v. modus-afhankelijk gemaakt.
+  `warmtepomp_uitschakelen` (een "stop") bleef bewust ongewijzigd — een
+  stop mag nooit door de modus geblokkeerd worden, enkel een start.

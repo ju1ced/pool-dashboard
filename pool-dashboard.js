@@ -1333,8 +1333,7 @@ class PoolDashboardCard extends CardBase {
         <span class="ic"><ha-icon icon="mdi:snowflake-alert"></ha-icon></span>
         <div>
           <b>Vorstbeveiliging actief</b> Watertemperatuur (${frost.watertemp}°C) onder de
-          ${frost.threshold}°C-drempel — filter blijft draaien, ongeacht modus of
-          overige instellingen.
+          ${frost.threshold}°C-drempel.
         </div>
       </div>`;
   }
@@ -1785,7 +1784,7 @@ class PoolDashboardCard extends CardBase {
          though every descendant here is still position:absolute/percentage
          width and so still has no intrinsic size of its own. min-width:0
          overrides the grid item's default auto min-size regardless. */
-      .pool-hero-row { display:grid; grid-template-columns:1fr 1fr; align-items:start; gap:16px; }
+      .pool-hero-row { display:grid; grid-template-columns:3fr 1fr; align-items:start; gap:16px; }
       .pool-hero-row .pool-illustration, .pool-hero-row .pool-quick-col { min-width:0; }
       .pool-quick-col { display:flex; flex-direction:column; gap:10px; }
       @media (max-width:640px) {

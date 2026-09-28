@@ -312,3 +312,31 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   POOL-28 rather than silently fixed, since a real solution needs a
   layout decision (dynamic spacing vs. two-layer badges vs. more compact
   values), not a quick patch.
+- POOL-28 — fixed, per user suggestion: `.pool-hero-row`'s
+  illustration/quick-controls ratio changed from 1:1 to 3:1
+  (`grid-template-columns: 3fr 1fr`) at full width, giving the
+  illustration's badge row enough room that "Doel"/"Verbruik" no longer
+  overlap. Under 640px the existing single-column fallback is unchanged.
+  Verified with a full-width (1100px) Playwright screenshot.
+- POOL-29 — the user clarified that Winter mode means the pool is
+  winterized: the physical pump is disconnected, so nothing should run
+  automatically — including frost protection, which has no equipment
+  left to protect. This reverses an explicit requirement from the
+  originally approved design (`proposal.md` §5.2 /
+  `season-mode-backend.md`: frost protection "always active, regardless
+  of mode"). Two live automations changed: the main filter-start
+  automation's frost-protection trigger now excludes `'Winter'`
+  specifically (still active in Zomer/Onderhoud/Handmatig); the
+  heater-on automation — which had no season-mode condition at all,
+  unlike the 5 automations migrated in POOL-5 — now gets one, matching
+  the same Zomer/Handmatig pattern, closing the gap where frost
+  protection turning the filter on could indirectly turn the heat pump
+  on during a Winter frost event. Automation descriptions, the live
+  `mode.impact.Winter` text, the `automations`-list summaries, and
+  `season-mode-backend.md` (an addendum, still fictional IDs) were all
+  updated to match. The card's `frost_protection_below` banner (POOL-8)
+  no longer claims "regardless of mode" — the card deliberately has no
+  mode-awareness, so that claim was removed rather than made
+  mode-conditional. `warmtepomp_uitschakelen` (a stop) was deliberately
+  left unchanged, per the existing design principle that a stop is never
+  gated by mode, only a start.
