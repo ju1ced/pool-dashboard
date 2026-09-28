@@ -656,14 +656,25 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   staat én beide metingen live getallen zijn (nooit een verouderd paar
   van vóór de laatste keer dat de warmtepomp draaide); `npm run verify`
   groen.
-- **Afgerond:** nieuwe pure, Node-geteste `heaterFlowTemperatures()`-
+- **Afgerond (v1):** nieuwe pure, Node-geteste `heaterFlowTemperatures()`-
   helper (zelfde patroon als `saltSystemFault`/`frostProtectionStatus`).
-  Nieuwe "Water in/uit"-badge op de illustratie, boven de bestaande
-  Doel/Verbruik-rij. Geverifieerd met een playwright-screenshot van de
-  gerenderde kaart (warmtepomp aan, realistische in/uit-waarden).
-  `npm run verify` groen (41/41 tests). **Tijdens het testen ontdekt:**
-  zie POOL-28 voor een reeds bestaand, niet door dit ticket veroorzaakt
-  visueel probleem in dezelfde badge-rij.
+  Combinatie-badge "Water in/uit" op de illustratie, boven de bestaande
+  Doel/Verbruik-rij. `npm run verify` groen (41/41 tests). **Tijdens het
+  testen ontdekt:** zie POOL-28 voor een reeds bestaand, niet door dit
+  ticket veroorzaakt visueel probleem in dezelfde badge-rij.
+- **Herzien (v2, op verzoek van de gebruiker):** de combinatie-badge bij
+  de warmtepomp vervangen door twee losse badges op hun echte fysieke
+  plek — een nieuw getekende skimmer (roostertje, linksboven op het
+  wateroppervlak) toont de inlet-temperatuur (`water_temperature`), een
+  nieuw getekende retour (concentrische "eyeball"-jetfitting, rechtsboven
+  op het wateroppervlak) toont `heater.outlet_temperature`. De algemene
+  watertemperatuur blijft in het midden op de bestaande drijvende
+  thermometer staan. Zelfde render-conditie als v1 (enkel wanneer de
+  warmtepomp draait en beide metingen live zijn) — `heaterFlowTemperatures()`
+  ongewijzigd, enkel de render-locatie/opsplitsing veranderde. De oude,
+  ongebruikte decoratieve rechthoek op die plek in de SVG is vervangen
+  door de retour-fitting. Geverifieerd met playwright-screenshots (licht
+  - donker thema). `npm run verify` groen (41/41 tests).
 
 ---
 

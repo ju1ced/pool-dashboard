@@ -1181,8 +1181,24 @@ class PoolDashboardCard extends CardBase {
 
             <rect x="72" y="40" width="656" height="18" fill="var(--pd-illus-wood-light)"></rect>
             <rect x="72" y="58" width="656" height="32" fill="url(#pi-water)"></rect>
-            <rect x="650" y="62" width="70" height="24" rx="4" fill="var(--pd-illus-water-2)" opacity=".55"></rect>
             <path d="M110,74 Q160,67 210,74 T320,74 T430,74 T540,74 T650,74" fill="none" stroke="var(--pd-illus-sky-1)" stroke-width="2" stroke-linecap="round" opacity=".5"></path>
+
+            <!-- skimmer (surface draw, grate lid) and retour (return jet,
+                 concentric eyeball fitting) — POOL-27 follow-up: inlet/
+                 outlet temperatures anchor to their real fixtures instead
+                 of a generic badge near the heat pump. -->
+            <g>
+              <rect x="118" y="60" width="44" height="28" rx="4" fill="var(--pd-illus-panel-dark)"></rect>
+              <line x1="124" y1="66" x2="124" y2="82" stroke="var(--pd-illus-equip-panel)" stroke-width="3"></line>
+              <line x1="134" y1="66" x2="134" y2="82" stroke="var(--pd-illus-equip-panel)" stroke-width="3"></line>
+              <line x1="144" y1="66" x2="144" y2="82" stroke="var(--pd-illus-equip-panel)" stroke-width="3"></line>
+              <line x1="154" y1="66" x2="154" y2="82" stroke="var(--pd-illus-equip-panel)" stroke-width="3"></line>
+            </g>
+            <g>
+              <circle cx="675" cy="74" r="16" fill="var(--pd-illus-panel-dark)"></circle>
+              <circle cx="675" cy="74" r="9" fill="none" stroke="var(--pd-illus-equip-panel)" stroke-width="3"></circle>
+              <circle cx="675" cy="74" r="3" fill="var(--pd-illus-equip-panel)"></circle>
+            </g>
 
             <g fill="var(--pd-illus-equip-panel)">
               <polygon points="58,280 90,280 82,304 66,304"></polygon>
@@ -1280,6 +1296,26 @@ class PoolDashboardCard extends CardBase {
             ${this._config.ambient_temperature ? badge(92.3, 14, this._config.ambient_temperature, "Buiten", ambient) : ""}
             ${this._config.comfort_score ? badge(92.3, 32, this._config.comfort_score, "Comfort", comfort) : ""}
             ${this._config.mode?.select ? badge(92.3, 50, this._config.mode.select, "Modus", mode) : ""}
+            ${
+              flow
+                ? badge(13.5, 24, this._config.water_temperature, "Skimmer", {
+                    value: String(flow.inlet),
+                    unit: "°C",
+                    available: true,
+                  })
+                : ""
+            }
+            ${
+              flow
+                ? badge(
+                    64.9,
+                    24,
+                    this._config.heater.outlet_temperature,
+                    "Retour",
+                    { value: String(flow.outlet), unit: "°C", available: true },
+                  )
+                : ""
+            }
 
             ${equipLabel(19.2, 58.5, this._config.filter?.pump, pumpLabel)}
             ${
@@ -1300,21 +1336,6 @@ class PoolDashboardCard extends CardBase {
             ${this._config.salt_system_fault ? badge(67.8, 92.9, this._config.salt_system_fault, "Verbruik", saltPower) : ""}
 
             ${equipLabel(83.2, 47.4, this._config.heater_power, heaterLabel)}
-            ${
-              flow
-                ? badge(
-                    83.2,
-                    75,
-                    this._config.heater.outlet_temperature,
-                    "Water in/uit",
-                    {
-                      value: `${flow.inlet} → ${flow.outlet}`,
-                      unit: "°C",
-                      available: true,
-                    },
-                  )
-                : ""
-            }
             ${this._config.target_temperature ? badge(78.7, 92.9, this._config.target_temperature, "Doel", target) : ""}
             ${this._config.heater?.power_draw ? badge(87.7, 92.9, this._config.heater.power_draw, "Verbruik", heaterPower) : ""}
           </div>
