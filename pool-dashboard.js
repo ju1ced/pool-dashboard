@@ -1295,7 +1295,7 @@ class PoolDashboardCard extends CardBase {
             </div>
             ${this._config.ambient_temperature ? badge(92.3, 14, this._config.ambient_temperature, "Buiten", ambient) : ""}
             ${this._config.comfort_score ? badge(92.3, 32, this._config.comfort_score, "Comfort", comfort) : ""}
-            ${this._config.mode?.select ? badge(92.3, 50, this._config.mode.select, "Modus", mode) : ""}
+            ${this._config.mode?.select ? badge(92.3, 40, this._config.mode.select, "Modus", mode) : ""}
             ${
               flow
                 ? badge(13.5, 24, this._config.water_temperature, "Skimmer", {

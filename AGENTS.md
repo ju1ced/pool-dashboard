@@ -406,3 +406,17 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   picking percentages that happened to work at one tested size. Verified
   with Playwright screenshots at both 700px (wraps to two lines, no
   overlap) and 1100px (stays one clean line).
+- POOL-30 (user report via a live screenshot): the "Modus" badge
+  (POOL-7, top-right of the illustration) visibly overlapped
+  "Warmtepomp"'s label/status dot below it. Cause: the Buiten/Comfort/
+  Modus badge trio followed a fixed 18%-step pattern (14/32/50%
+  vertical) without accounting for where the illustration's sky area
+  actually ends (~45.6% of height) — at 50% the Modus badge already
+  fell into the dark equipment section, right where the "Warmtepomp"
+  label starts. Went unnoticed until `mode.select` was actually live in
+  config (after POOL-5 completed). Fixed by moving Modus from top `50`
+  to top `40`, well clear of both the Comfort badge above and the
+  equipment section below. Verified with a Playwright screenshot
+  reproducing the reported scenario (`mode.select` + `comfort_score` +
+  `ambient_temperature` together) at a wide (1500px) viewport matching
+  the reported live dashboard's scale.

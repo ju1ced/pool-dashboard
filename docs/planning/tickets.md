@@ -772,3 +772,34 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   claim is geschrapt i.p.v. modus-afhankelijk gemaakt.
   `warmtepomp_uitschakelen` (een "stop") bleef bewust ongewijzigd — een
   stop mag nooit door de modus geblokkeerd worden, enkel een start.
+
+---
+
+<a id="pool-30"></a>
+
+## POOL-30 — Modus-badge overlapte met "Warmtepomp"-label
+
+**Status:** Klaar · **Prioriteit:** P1 · **Epic:** Basis
+
+- **Scope:** gebruiker meldde via een live screenshot dat de "Modus"-badge
+  (rechtsboven op de illustratie, sinds POOL-7) zichtbaar overlapte met
+  het "Warmtepomp"-label/statuslichtje eronder.
+- **Afhankelijkheden:** geen.
+- **Acceptatiecriteria:** Modus-badge blijft visueel in dezelfde
+  "lucht"-kolom als Buiten/Comfort, geen overlap met de
+  uitrustingssectie eronder.
+- **Oorzaak:** de Buiten/Comfort/Modus-badges volgden een vast
+  patroon van 18%-stappen (14/32/50% verticaal) zonder rekening te
+  houden met waar de "lucht"-zone van de illustratie daadwerkelijk
+  eindigt (~45,6% van de hoogte) — bij 50% viel de Modus-badge al in de
+  donkere uitrustingssectie, net waar het "Warmtepomp"-label begint.
+  Onopgemerkt gebleven tot `mode.select` effectief live geconfigureerd
+  stond (na POOL-5's afronding).
+- **Afgerond:** Modus-badge verplaatst van top `50` naar top `40` —
+  blijft daarmee ruim binnen de lucht-zone, met voldoende afstand tot
+  zowel de Comfort-badge erboven als de uitrustingssectie eronder.
+  Geverifieerd met een playwright-screenshot die het gerapporteerde
+  scenario naboot (`mode.select` + `comfort_score` + `ambient_temperature`
+  samen geconfigureerd) op een brede viewport (1500px, vergelijkbaar met
+  de live TV/monitor-dashboard-breedte in de gerapporteerde screenshot):
+  geen overlap meer. `npm run verify` groen (41/41 tests).
