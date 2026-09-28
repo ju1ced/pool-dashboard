@@ -25,9 +25,9 @@ Geen tickets.
 
 ## Review/validatie
 
-| Ticket                        | Onderwerp                              | Prioriteit |
-| ----------------------------- | -------------------------------------- | ---------- |
-| [POOL-13](tickets.md#pool-13) | Onderhoud-/verbruiksartikelen-tracking | P2         |
+| Ticket                        | Onderwerp                                    | Prioriteit |
+| ----------------------------- | -------------------------------------------- | ---------- |
+| [POOL-26](tickets.md#pool-26) | GUI-editor uitgebreid naar alle configvelden | P1         |
 
 ## Klaar
 
@@ -53,6 +53,7 @@ Geen tickets.
 | [POOL-18](tickets.md#pool-18) | Canonieke watertemperatuur-sensor                | P0         |
 | [POOL-21](tickets.md#pool-21) | Warmtepomp-vermogenskoppeling bevestigen         | P2         |
 | [POOL-20](tickets.md#pool-20) | Automatiseringsconflicten oplossen               | P0         |
+| [POOL-13](tickets.md#pool-13) | Onderhoud-/verbruiksartikelen-tracking           | P2         |
 
 ## Geblokkeerd
 

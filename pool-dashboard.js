@@ -222,6 +222,33 @@ function maintenanceOverdue(days, intervalDays) {
   return days >= intervalDays;
 }
 
+/** Read a dot-path (e.g. "filter.pump") out of a config object. */
+function getConfigPath(config, path) {
+  return path.split(".").reduce((v, p) => (v == null ? v : v[p]), config || {});
+}
+
+/**
+ * Write a dot-path into a config object immutably (never mutates `config`),
+ * deleting the key entirely on an `undefined` value rather than leaving a
+ * stray `field: undefined`/`""` in the saved YAML. Only supports one level
+ * of nesting (`"group.key"`), matching this card's config shape.
+ */
+function setConfigPath(config, path, value) {
+  const parts = path.split(".");
+  const next = { ...config };
+  if (parts.length === 1) {
+    if (value === undefined) delete next[parts[0]];
+    else next[parts[0]] = value;
+    return next;
+  }
+  const [group, key] = parts;
+  const g = { ...(next[group] || {}) };
+  if (value === undefined) delete g[key];
+  else g[key] = value;
+  next[group] = g;
+  return next;
+}
+
 /** Confirmation is on by default; only an explicit `false` disables it. */
 function shouldConfirm(config) {
   return config?.confirm_actions !== false;
@@ -1813,22 +1840,78 @@ class PoolDashboardCardEditor extends CardBase {
     );
   }
 
+  _getPath(path) {
+    return getConfigPath(this._config, path);
+  }
+
+  _setPath(path, value) {
+    const next = setConfigPath(this._config, path, value);
+    this._config = next;
+    this.dispatchEvent(
+      new CustomEvent("config-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { config: next },
+      }),
+    );
+  }
+
   _render() {
     if (!this.shadowRoot) this.attachShadow({ mode: "open" });
     const c = this._config || {};
+
+    // GUI entity/text/number fields for every config leaf. Entity fields
+    // are plain text inputs with a shared <datalist> of live entity ids for
+    // browser-native autocomplete, keeping this editor dependency-free
+    // (no coupling to HA-frontend-internal elements like ha-entity-picker)
+    // per this card's single-dependency-free-module design (AGENTS.md).
+    // `automations[]` and `mode.impact`/`mode.automations` stay YAML-only —
+    // they're list/map-shaped, not a single entity per field, and a full
+    // list editor for them is out of scope here.
+    const entityField = (path, label, { required = false } = {}) => `
+      <label>${escapeHtml(label)}${required ? " *" : ""}
+        <input type="text" data-path="${escapeHtml(path)}" data-kind="entity"
+          list="pd-entities" value="${escapeHtml(this._getPath(path) || "")}"
+          placeholder="domein.entiteit_id">
+      </label>`;
+    const textField = (path, label) => `
+      <label>${escapeHtml(label)}
+        <input type="text" data-path="${escapeHtml(path)}" data-kind="text"
+          value="${escapeHtml(this._getPath(path) || "")}">
+      </label>`;
+    const numberField = (path, label) => {
+      const v = this._getPath(path);
+      return `
+      <label>${escapeHtml(label)}
+        <input type="number" data-path="${escapeHtml(path)}" data-kind="number"
+          value="${v === undefined || v === null ? "" : escapeHtml(String(v))}">
+      </label>`;
+    };
+    const entityIds = this._hass?.states
+      ? Object.keys(this._hass.states).sort()
+      : [];
+
     this.shadowRoot.innerHTML = `
       <style>
         .ed { display:flex; flex-direction:column; gap:12px; padding:8px 4px; font-family:inherit; }
         label { display:flex; flex-direction:column; gap:4px; font-size:13px; color:var(--secondary-text-color,#888); }
-        input[type=text] { padding:8px 10px; border-radius:8px; border:1px solid var(--divider-color,#ccc);
+        input[type=text], input[type=number] { padding:8px 10px; border-radius:8px; border:1px solid var(--divider-color,#ccc);
           background:var(--card-background-color,#fff); color:var(--primary-text-color,#222); }
         select { padding:8px 10px; border-radius:8px; border:1px solid var(--divider-color,#ccc);
           background:var(--card-background-color,#fff); color:var(--primary-text-color,#222); }
         .row { display:flex; align-items:center; gap:8px; font-size:14px; color:var(--primary-text-color,#222); }
         .hint { font-size:12px; color:var(--secondary-text-color,#888); line-height:1.4; }
         code { background:var(--secondary-background-color,#eee); padding:1px 5px; border-radius:5px; }
+        details { border:1px solid var(--divider-color,#ccc); border-radius:8px; padding:0 10px; }
+        details[open] { padding-bottom:10px; }
+        summary { padding:10px 0; font-size:14px; font-weight:600; color:var(--primary-text-color,#222); cursor:pointer; }
+        .fields { display:flex; flex-direction:column; gap:10px; }
       </style>
       <div class="ed">
+        <datalist id="pd-entities">
+          ${entityIds.map((id) => `<option value="${escapeHtml(id)}">`).join("")}
+        </datalist>
+
         <label>Titel
           <input type="text" id="title" value="${escapeHtml(c.title || "")}" placeholder="Zwembad">
         </label>
@@ -1843,8 +1926,101 @@ class PoolDashboardCardEditor extends CardBase {
             <option value="dark" ${c.theme_mode === "dark" ? "selected" : ""}>Donker (vast)</option>
           </select>
         </label>
-        <p class="hint">Entiteiten, modus en automatiseringen worden geconfigureerd via YAML. Zie
-          <code>docs/configuration.md</code> voor alle opties, of gebruik de code-editor.</p>
+
+        <details open>
+          <summary>Basis</summary>
+          <div class="fields">
+            ${entityField("status", "Status-sensor (optioneel)")}
+            ${entityField("water_temperature", "Watertemperatuur", { required: true })}
+            ${entityField("target_temperature", "Doeltemperatuur", { required: true })}
+            ${entityField("ambient_temperature", "Buitentemperatuur", { required: true })}
+            ${entityField("heater_power", "Warmtepomp aan/uit", { required: true })}
+            ${entityField("has_error", "Warmtepomp foutmelding")}
+            ${entityField("salt_system_fault", "Zoutsysteem verbruik (fout-detectie)")}
+            ${entityField("swim_mode", "Zwemmodus")}
+            ${entityField("comfort_score", "Comfortscore")}
+            ${entityField("pv_mode", "PV-modus")}
+            ${entityField("target_temperature_updated", "Doeltemperatuur laatst aangepast")}
+            ${entityField("energy_price", "Energieprijs")}
+          </div>
+        </details>
+
+        <details>
+          <summary>Filter</summary>
+          <div class="fields">
+            ${entityField("filter.pump", "Filterpomp")}
+            ${entityField("filter.hours_today", "Gelopen uren vandaag")}
+            ${entityField("filter.hours_target", "Streefuren")}
+            ${entityField("filter.catchup_mode", "Inhaalmodus")}
+            ${entityField("filter.power_draw", "Verbruik (W)")}
+            ${textField("filter.label", "Label op illustratie")}
+          </div>
+        </details>
+
+        <details>
+          <summary>Warmtepomp</summary>
+          <div class="fields">
+            ${textField("heater.label", "Label op illustratie")}
+            ${entityField("heater.power_draw", "Verbruik (W)")}
+            ${entityField("heater.mode", "Modus")}
+            ${entityField("heater.compressor", "Compressor")}
+            ${entityField("heater.circulate_pump", "Circulatiepomp")}
+            ${entityField("heater.coil_temperature", "Coil-temperatuur")}
+            ${entityField("heater.exhaust_temperature", "Uitlaattemperatuur")}
+            ${textField("heater.error_description", "Foutomschrijving (vrije tekst)")}
+            ${entityField("heater.proxy_online", "Proxy online")}
+          </div>
+        </details>
+
+        <details>
+          <summary>Zoutsysteem</summary>
+          <div class="fields">
+            ${entityField("salt_system.power", "Aan/uit")}
+            ${textField("salt_system.label", "Label op illustratie")}
+            ${entityField("salt_system.chlorination_level", "Chlorinatieniveau")}
+            ${entityField("salt_system.boost", "Boost")}
+            ${entityField("salt_system.boost_remaining", "Resterende boost-tijd")}
+            ${numberField("salt_system.fault_below_watts", "Foutdrempel (W, standaard 15)")}
+          </div>
+        </details>
+
+        <details>
+          <summary>Waterkwaliteit</summary>
+          <div class="fields">
+            ${entityField("water_quality.ph", "pH")}
+            ${entityField("water_quality.ph_setpoint", "pH-setpoint")}
+            ${entityField("water_quality.orp", "ORP")}
+            ${entityField("water_quality.orp_setpoint", "ORP-setpoint")}
+            ${entityField("water_quality.salinity", "Zoutgehalte")}
+          </div>
+        </details>
+
+        <details>
+          <summary>Onderhoud</summary>
+          <div class="fields">
+            ${entityField("maintenance.filter_cleaned", "Laatste filterreiniging (datum)")}
+            ${numberField("maintenance.filter_cleaning_interval_days", "Interval filterreiniging (dagen)")}
+            ${entityField("maintenance.salt_cell_replaced", "Laatste zoutcel-vervanging (datum)")}
+            ${numberField("maintenance.salt_cell_lifespan_days", "Interval zoutcel-vervanging (dagen)")}
+          </div>
+        </details>
+
+        <details>
+          <summary>Seizoensmodus</summary>
+          <div class="fields">
+            ${entityField("mode.select", "Modus-keuzehelper (input_select)")}
+            ${entityField("mode.apply_script", "Toepassingsscript")}
+            <p class="hint">Alleen zichtbaar in de kaart wanneer beide bovenstaande velden
+              ingevuld zijn. <code>mode.impact</code> en <code>mode.automations</code>
+              (tekst per modus / automatiseringen per modus) zijn enkel via YAML in te
+              stellen — zie <code>docs/configuration.md</code>.</p>
+          </div>
+        </details>
+
+        <p class="hint"><code>automations</code> (het overzicht van welke
+          automatiseringen bestaan) is enkel via YAML in te stellen — het is een lijst,
+          geen los veld. Zie <code>docs/configuration.md</code> voor alle opties, of
+          gebruik de code-editor.</p>
       </div>`;
 
     this.shadowRoot
@@ -1860,6 +2036,27 @@ class PoolDashboardCardEditor extends CardBase {
       .addEventListener("change", (e) =>
         this._emit({ theme_mode: e.target.value }),
       );
+    this.shadowRoot
+      .querySelectorAll("input[data-path]")
+      .forEach((el) =>
+        el.addEventListener("change", () => this._onFieldChange(el)),
+      );
+  }
+
+  _onFieldChange(el) {
+    const path = el.dataset.path;
+    const kind = el.dataset.kind;
+    const raw = el.value.trim();
+    let value;
+    if (raw === "") {
+      value = undefined;
+    } else if (kind === "number") {
+      const n = Number(raw);
+      value = Number.isFinite(n) ? n : undefined;
+    } else {
+      value = raw;
+    }
+    this._setPath(path, value);
   }
 }
 
@@ -1905,6 +2102,8 @@ if (typeof module !== "undefined" && module.exports) {
     estimatedCostPerHour,
     daysSince,
     maintenanceOverdue,
+    getConfigPath,
+    setConfigPath,
     shouldConfirm,
     resolveThemeMode,
     ILLUS_TOKENS,

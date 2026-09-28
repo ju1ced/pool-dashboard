@@ -240,3 +240,23 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   pattern as `salt_system.fault_below_watts`, no reminder/notification
   logic (that stays out of scope, see POOL-16). Backed by two new live
   `input_datetime` helpers. On its own branch/PR, not merged.
+- 2026-09-28 — POOL-13 merged and released as v0.6.0; HACS updated on the
+  live instance.
+- POOL-26 — the card's editor previously exposed only title/confirm/theme
+  in the GUI, leaving every entity mapping YAML-only. On explicit user
+  request, extended to a field for every scalar config leaf (top-level +
+  `filter`/`heater`/`salt_system`/`water_quality`/`maintenance`/
+  `mode.select`/`mode.apply_script`), grouped into collapsible sections.
+  Entity fields are plain text inputs with a shared `<datalist>` of live
+  entity ids for autocomplete — deliberately not `ha-entity-picker` (an
+  HA-frontend-internal element), keeping this card's stated
+  single-dependency-free-module design. Two new pure, Node-tested helpers
+  (`getConfigPath`/`setConfigPath`) back both the editor and its tests.
+  `automations[]` and `mode.impact`/`mode.automations` stay YAML-only —
+  list/map-shaped, not a one-field-per-entity fit; a full list editor for
+  those is a separate, larger task, called out explicitly rather than cut
+  silently. Verified with a live Playwright interaction test (not just a
+  screenshot): a changed top-level field, a nested field, and a
+  cleared field each produce the expected `config-changed` payload,
+  including a cleared field disappearing entirely rather than being
+  stored as an empty string. On its own branch/PR, not merged.

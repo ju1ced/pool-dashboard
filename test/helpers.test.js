@@ -12,6 +12,8 @@ const {
   estimatedCostPerHour,
   daysSince,
   maintenanceOverdue,
+  getConfigPath,
+  setConfigPath,
   shouldConfirm,
   resolveThemeMode,
   modeImpactSummary,
@@ -510,4 +512,33 @@ test("deriveStatus: a misconfigured (missing) required field is treated as unava
     },
   };
   assert.equal(deriveStatus(config, hass).key, "unavailable");
+});
+
+test("getConfigPath reads top-level and nested fields", () => {
+  const config = { title: "Zwembad", filter: { pump: "switch.pump" } };
+  assert.equal(getConfigPath(config, "title"), "Zwembad");
+  assert.equal(getConfigPath(config, "filter.pump"), "switch.pump");
+  assert.equal(getConfigPath(config, "filter.missing"), undefined);
+  assert.equal(getConfigPath(config, "heater.mode"), undefined);
+});
+
+test("setConfigPath writes top-level and nested fields immutably", () => {
+  const config = { filter: { pump: "switch.pump" } };
+  const next = setConfigPath(config, "filter.hours_today", "sensor.hours");
+  assert.equal(next.filter.hours_today, "sensor.hours");
+  assert.equal(next.filter.pump, "switch.pump");
+  // original config is untouched
+  assert.equal(config.filter.hours_today, undefined);
+
+  const top = setConfigPath(config, "title", "Zwembad");
+  assert.equal(top.title, "Zwembad");
+});
+
+test("setConfigPath deletes the key on undefined instead of storing it", () => {
+  const config = { title: "Zwembad", filter: { pump: "switch.pump" } };
+  const next = setConfigPath(config, "title", undefined);
+  assert.ok(!("title" in next));
+
+  const nested = setConfigPath(config, "filter.pump", undefined);
+  assert.ok(!("pump" in nested.filter));
 });
