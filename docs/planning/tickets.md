@@ -571,3 +571,42 @@ Resources]"`) toen dit autonoom draaide; identieke edit (acties leeg)
   van de gerenderde illustratie (licht + donker thema, realistische
   waarden uit de live screenshot) vóór het mergen. `npm run verify` groen.
   Gemerged via PR #11.
+
+---
+
+<a id="pool-26"></a>
+
+## POOL-26 — GUI-editor uitgebreid naar alle configvelden
+
+**Status:** Review/validatie (PR open, niet gemerged) · **Prioriteit:** P1
+· **Epic:** Kaart-UX
+
+- **Scope:** de kaart-editor toonde enkel titel/bevestiging/thema in de
+  GUI — elke entiteit (verplicht of optioneel) moest via YAML ingevuld
+  worden. Gebruiker vroeg expliciet om een volledige GUI-editor.
+- **Afhankelijkheden:** geen — voortbouwend op de bestaande minimale
+  editor uit Fase 3.
+- **Acceptatiecriteria:** elk scalair configveld (top-level + `filter`/
+  `heater`/`salt_system`/`water_quality`/`maintenance`/`mode.select`/
+  `mode.apply_script`) heeft een GUI-veld; `npm run verify` groen; live
+  interactieve test bevestigt dat wijzigingen correct in de
+  `config-changed`-event terechtkomen, inclusief geneste velden en het
+  verwijderen van een leeggemaakt veld (geen spook-`""`/`undefined` in de
+  opgeslagen YAML).
+- **Bewust buiten scope:** `automations[]` (lijst) en `mode.impact`/
+  `mode.automations` (map per modus) blijven YAML-only — het zijn
+  lijst-/map-vormige velden, geen één-op-één entiteitsveld, en een volledige
+  lijst-editor daarvoor is een aparte, grotere taak.
+- **Afgerond:** editor herschreven met inklapbare `<details>`-secties per
+  configgroep. Entiteitsvelden zijn platte tekstvelden met een gedeelde
+  `<datalist>` van live entity-ID's voor browser-native autocomplete —
+  bewust geen `ha-entity-picker` (HA-frontend-intern element), consistent
+  met dit project's "single dependency-free module"-ontwerp. Twee nieuwe
+  pure, Node-geteste helpers (`getConfigPath`/`setConfigPath`) voor
+  geneste dot-path lezen/schrijven, gedeeld tussen de editor-methodes en
+  de tests. Geverifieerd met een live Playwright-interactietest (niet
+  enkel een screenshot): een gewijzigd top-level veld, een genest veld, en
+  een leeggemaakt veld leveren elk de verwachte `config-changed`-payload
+  op, inclusief het volledig verdwijnen van een leeggemaakt veld i.p.v.
+  een lege string. `npm run verify` groen (37/37 tests). PR open, nog niet
+  gemerged.
