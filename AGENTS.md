@@ -296,6 +296,27 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   and every design decision recorded above this line are the stable
   baseline going forward — new fields are additive, not breaking
   changes to what's already shipped.
+- 2026-09-28 — further HA-side automation cleanup: the two remaining
+  neutered automations from POOL-20 (midnight-safety and
+  stop-bij-doeluren duplicates) were actually deleted this time
+  (interactive session), superseding their earlier `actions: []`
+  workaround. The POOL-19 dead-helper automation could not be deleted
+  again (blocked with a different classifier reason,
+  `"[Irreversible Deletion (general)]"`) and stays on the workaround.
+  Also fixed a live dashboard gap: `target_temperature_updated` was left
+  unwired earlier because the entity search used an English-ish term —
+  the real entity (found via the weather-forecast automation's own
+  actions) is now wired into the live card config, and the two deleted
+  automations were removed from its `automations` list.
+- **Found, not fixed — needed explicit approval (resolved by POOL-29
+  below):** the automation that turns the heat pump on had no
+  season-mode condition, unlike the 5 automations migrated in POOL-5.
+  Since frost protection can turn the filter on unconditionally in any
+  mode, this automation could turn the heat pump on during a frost event
+  in Winter/Onderhoud mode — contradicting that mode's own documented
+  "warmtepomp expliciet uit" promise. This was a behavioral change to a
+  live automation with equipment-safety implications; not made
+  unilaterally at the time.
 - POOL-27 — new optional `heater.outlet_temperature` field, paired with
   the existing top-level `water_temperature` (the inlet reading) as a
   new pure, Node-tested `heaterFlowTemperatures()` helper (same pattern
