@@ -55,6 +55,7 @@ Geen tickets.
 | [POOL-27](tickets.md#pool-27) | Inlet-/uitlaat-watertemperatuur bij warmtepomp                | P2         |
 | [POOL-28](tickets.md#pool-28) | Doel-/Verbruik-badges overlappen visueel                      | P1         |
 | [POOL-29](tickets.md#pool-29) | Wintermodus: geen automatische actie (incl. vorstbeveiliging) | P0         |
+| [POOL-30](tickets.md#pool-30) | Modus-badge overlapte met "Warmtepomp"-label                  | P1         |
 
 ## Geblokkeerd
 
