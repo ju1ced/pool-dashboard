@@ -1319,25 +1319,89 @@ class PoolDashboardCard extends CardBase {
 
             ${equipLabel(19.2, 58.5, this._config.filter?.pump, pumpLabel)}
             ${
-              this._config.filter?.hours_today
-                ? badge(19.2, 92.9, this._config.filter.hours_today, "Filter", {
-                    value: `${filterHours.value}${this._config.filter?.hours_target ? ` / ${filterTarget.value}` : ""}`,
-                    unit: "h",
-                  })
+              this._config.filter?.hours_today ||
+              this._config.filter?.power_draw
+                ? badge(
+                    23.75,
+                    92.9,
+                    this._config.filter?.hours_today ||
+                      this._config.filter?.power_draw,
+                    "Filter",
+                    {
+                      value: [
+                        this._config.filter?.hours_today
+                          ? `${filterHours.value}${this._config.filter?.hours_target ? `/${filterTarget.value}` : ""}h`
+                          : null,
+                        this._config.filter?.power_draw
+                          ? `${pumpPower.value}W`
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · "),
+                      unit: "",
+                      available: true,
+                    },
+                  )
                 : ""
             }
-            ${this._config.filter?.power_draw ? badge(28.3, 92.9, this._config.filter.power_draw, "Verbruik", pumpPower) : ""}
 
             ${equipLabel(51.9, 56.2, this._config.salt_system?.power, saltLabel)}
             ${fault ? `<div class="pi-warn-pill" style="${pos(63.9, 57.6)}">▲ debietfout</div>` : ""}
             ${this._config.water_quality?.ph ? badge(40.4, 92.9, this._config.water_quality.ph, "pH", ph) : ""}
             ${this._config.water_quality?.orp ? badge(49.5, 92.9, this._config.water_quality.orp, "ORP", orp) : ""}
-            ${this._config.water_quality?.salinity ? badge(58.7, 92.9, this._config.water_quality.salinity, "Zout", salinity) : ""}
-            ${this._config.salt_system_fault ? badge(67.8, 92.9, this._config.salt_system_fault, "Verbruik", saltPower) : ""}
+            ${
+              this._config.water_quality?.salinity ||
+              this._config.salt_system_fault
+                ? badge(
+                    63.25,
+                    92.9,
+                    this._config.water_quality?.salinity ||
+                      this._config.salt_system_fault,
+                    "Zout",
+                    {
+                      value: [
+                        this._config.water_quality?.salinity
+                          ? `${salinity.value}${salinity.unit ? ` ${salinity.unit}` : ""}`
+                          : null,
+                        this._config.salt_system_fault
+                          ? `${saltPower.value}W`
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · "),
+                      unit: "",
+                      available: true,
+                    },
+                  )
+                : ""
+            }
 
             ${equipLabel(83.2, 47.4, this._config.heater_power, heaterLabel)}
-            ${this._config.target_temperature ? badge(78.7, 92.9, this._config.target_temperature, "Doel", target) : ""}
-            ${this._config.heater?.power_draw ? badge(87.7, 92.9, this._config.heater.power_draw, "Verbruik", heaterPower) : ""}
+            ${
+              this._config.target_temperature || this._config.heater?.power_draw
+                ? badge(
+                    83.2,
+                    92.9,
+                    this._config.target_temperature ||
+                      this._config.heater?.power_draw,
+                    "Doel",
+                    {
+                      value: [
+                        this._config.target_temperature
+                          ? `${target.value}°`
+                          : null,
+                        this._config.heater?.power_draw
+                          ? `${heaterPower.value}W`
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · "),
+                      unit: "",
+                      available: true,
+                    },
+                  )
+                : ""
+            }
           </div>
         </div>
       </div>`;
@@ -1805,7 +1869,7 @@ class PoolDashboardCard extends CardBase {
          though every descendant here is still position:absolute/percentage
          width and so still has no intrinsic size of its own. min-width:0
          overrides the grid item's default auto min-size regardless. */
-      .pool-hero-row { display:grid; grid-template-columns:minmax(0,640px) 1fr; align-items:start; gap:16px; }
+      .pool-hero-row { display:grid; grid-template-columns:1fr 1fr; align-items:start; gap:16px; }
       .pool-hero-row .pool-illustration, .pool-hero-row .pool-quick-col { min-width:0; }
       .pool-quick-col { display:flex; flex-direction:column; gap:10px; }
       @media (max-width:640px) {
@@ -1817,9 +1881,9 @@ class PoolDashboardCard extends CardBase {
       .pi-overlay { position:absolute; inset:0; }
 
       .pi-badge { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:1px; cursor:pointer; }
-      .pi-badge .lbl { font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--pd-text-muted); }
-      .pi-badge .val { font-weight:700; font-size:13px; color:var(--pd-illus-screen-text); background:var(--pd-illus-screen);
-        border-radius:7px; padding:3px 8px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+      .pi-badge .lbl { font-size:9px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--pd-text-muted); }
+      .pi-badge .val { font-weight:700; font-size:11px; color:var(--pd-illus-screen-text); background:var(--pd-illus-screen);
+        border-radius:6px; padding:2px 5px; font-variant-numeric:tabular-nums; white-space:nowrap; }
       .pi-badge.on-dark .lbl { color:color-mix(in srgb, var(--pd-illus-screen-text) 55%, var(--pd-text-muted)); }
 
       .pi-float-therm { position:absolute; transform:translate(-50%,-50%); width:64px; height:64px; border-radius:50%;
@@ -1846,7 +1910,7 @@ class PoolDashboardCard extends CardBase {
       .pi-alert-badge .dot { width:7px; height:7px; border-radius:50%; background:var(--pd-warning); flex:none; }
 
       @media (max-width: 480px) {
-        .pi-badge .val, .pi-float-therm b { font-size:11px; }
+        .pi-float-therm b { font-size:11px; }
       }
 
       .override-banner { display:flex; align-items:flex-start; gap:9px; background:color-mix(in srgb, var(--pd-warning) 14%, transparent);
