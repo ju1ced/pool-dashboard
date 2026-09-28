@@ -361,3 +361,22 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   mode-conditional. `warmtepomp_uitschakelen` (a stop) was deliberately
   left unchanged, per the existing design principle that a stop is never
   gated by mode, only a start.
+- POOL-28 follow-up: the 3:1 ratio fixed the badge overlap but let the
+  illustration grow unbounded on wide screens while squeezing "Snelle
+  bediening" to a fixed, too-narrow 1fr share. Changed
+  `grid-template-columns` from `3fr 1fr` to `minmax(0,640px) 1fr` — the
+  illustration stops growing at 640px, and quick controls get whatever
+  space is left instead of a fixed fraction. Verified at 1100px and
+  1800px.
+- POOL-27 v2 (user feedback after seeing it live): the "Water in/uit"
+  combo badge near the heat pump was replaced with two badges at their
+  real physical fixtures — a newly drawn skimmer (grate, top-left of the
+  water surface) shows the inlet reading (`water_temperature`), a newly
+  drawn return jet (concentric "eyeball" fitting, top-right) shows
+  `heater.outlet_temperature`. The general water temperature stays on
+  the existing floating thermometer in the middle. Same render gate as
+  before (`heaterFlowTemperatures()`, unchanged) — only where/how the
+  two values render changed. The old, purely decorative unlabeled
+  rectangle that used to sit at the return's position was replaced by
+  the new fitting rather than kept alongside it. Verified with
+  Playwright screenshots in both light and dark theme.
