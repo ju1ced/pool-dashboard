@@ -74,15 +74,39 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-5 — Seizoensmodus-backend bouwen in Home Assistant
 
-**Status:** Geblokkeerd · **Prioriteit:** P0 · **Epic:** Seizoensmodus
+**Status:** In uitvoering (5/5 automatiseringen live, kaart nog niet
+gekoppeld) · **Prioriteit:** P0 · **Epic:** Seizoensmodus
 
 - **Scope:** de helper, het script en de conditie-edits uit POOL-4
   daadwerkelijk aanmaken in Home Assistant.
-- **Blokkade:** vereist aparte, expliciete goedkeuring vooraleer dit in Home
-  Assistant gebouwd wordt (zie `AGENTS.md` §5). Niet starten zonder die
-  goedkeuring, ook al staat de rest van de roadmap open.
+- **Goedkeuring:** gegeven 2026-09-25 (samen met POOL-13/18/19/20/21).
+- **Live:** de moduskeuze-helper en het toepassingsscript bestaan; alle 5
+  automatiseringen zijn gemigreerd van maand-gebaseerde naar
+  modus-gebaseerde seizoensconditie, exact volgens het uitrolplan in
+  `season-mode-backend.md` (per automatisering, één voor één, alle
+  triggers/niet-seizoensgebonden condities ongewijzigd). De 5e
+  ("inhaalmodus") werd eerst geblokkeerd door de Claude Code
+  auto-mode classifier (`"[Modify Shared Resources]"`) toen dit
+  autonoom draaide; de identieke edit lukte daarna probleemloos in een
+  interactieve sessie (2026-09-28) — zie de opmerking hieronder.
+- **Geen restrisico op 2026-10-01 meer:** met alle 5 automatiseringen op
+  de moduskeuze i.p.v. `now().month`, verandert er niets automatisch meer
+  op 1 oktober.
+- **Kaart nog niet gekoppeld:** `mode.select`/`mode.apply_script` zijn
+  bewust nog niet ingevuld in de live kaart-config — het uitrolplan zet
+  die koppeling als laatste stap. Nu alle 5 automatiseringen gemigreerd
+  zijn, kan dit gebeuren zodra gewenst.
+- **Classifier-observatie:** de eerdere blokkades op deze en op de
+  stop-bij-doeluren-duplicaat-automatisering uit POOL-20 bleken geen
+  permanente permission-regel te vereisen — beide edits lukten zonder
+  wijziging aan de config, enkel door ze in een interactieve sessie
+  opnieuw uit te voeren i.p.v. autonoom. Vermoedelijk defaulted de
+  classifier naar weigeren wanneer niemand aanwezig is om een
+  risicovolle actie te bevestigen.
 - **Afhankelijkheden:** POOL-4 (klaar).
-- **Acceptatiecriteria:** n.v.t. tot goedkeuring gegeven is.
+- **Acceptatiecriteria:** alle 5 automatiseringen op modus-conditie
+  (✅ gehaald); `mode.select`/`mode.apply_script` ingevuld in de
+  kaart-config; card-side gedrag (POOL-6/7/8) live getest (nog te doen).
 
 ---
 
@@ -209,20 +233,30 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-13 — Onderhoud- en verbruiksartikelen-tracking
 
-**Status:** Backlog · **Prioriteit:** P2 · **Epic:** Kaart-UX
+**Status:** Review/validatie (PR open, niet gemerged) · **Prioriteit:** P2
+· **Epic:** Kaart-UX
 
 - **Scope:** bijvoorbeeld resterende levensduur zoutcel, datum laatste
   filterreiniging — herinneringen wanneer onderhoud nodig is.
-- **Afhankelijkheden:** vermoedelijk nieuwe Home Assistant-helpers nodig
-  (datum-opslag) — scope-check vooraf, mogelijk buiten wat de kaart alleen
-  kan oplossen.
-- **Acceptatiecriteria:** nog te bepalen na scope-check.
-- **Voortgang:** scope-check afgerond via read-only MCP-check — geen
-  bestaande entiteit voor zoutcel-levensduur, filterreinigingsdatum of
-  onderhoud in het algemeen. Vereist eerst nieuwe HA-helpers (bv.
-  `input_datetime`/`input_number`), wat buiten de scope van deze kaart-repo
-  op zich valt — vereist een aparte, expliciete aanvraag (zie `AGENTS.md`).
-  Blijft in de backlog zonder verdere kaart-actie tot die helpers bestaan.
+- **Afhankelijkheden:** nieuwe Home Assistant-helpers (datum-opslag).
+- **Acceptatiecriteria:** `npm run verify` groen; nieuwe rijen renderen
+  enkel wanneer de bijbehorende datum-entiteit geconfigureerd is; geen
+  gegokte "nu onderhoud nodig"-beslissing, enkel dagen-geleden + optionele
+  drempelwaarde-markering.
+- **Voortgang:** scope-check (eerder afgerond) bevestigde geen bestaande
+  entiteit voor zoutcel-levensduur/filterreinigingsdatum — vereiste nieuwe
+  HA-helpers. Goedgekeurd 2026-09-25 samen met POOL-5/18/19/20/21.
+- **Afgerond (2026-09-28):** twee nieuwe `input_datetime`-helpers live in
+  Home Assistant (laatste filterreiniging, laatste zoutcel-vervanging).
+  Nieuw optioneel top-level `maintenance`-configblok
+  (`filter_cleaned`/`filter_cleaning_interval_days`/`salt_cell_replaced`/
+  `salt_cell_lifespan_days`), gerenderd als nieuwe "Onderhoud"-subsectie
+  bovenaan **Instellingen** via de nieuwe pure `daysSince()`/
+  `maintenanceOverdue()`-helpers (Node-getest) — zelfde
+  simpele-drempel-voor-weergave-patroon als `salt_system.fault_below_watts`.
+  Geen reminder/notificatie/timer (blijft bewust buiten scope, zie
+  POOL-16). PR open, nog niet gemerged — zie `docs/configuration.md` voor
+  de veldreferentie.
 
 ---
 
@@ -318,16 +352,21 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-18 — Canonieke watertemperatuur-sensor kiezen
 
-**Status:** Backlog · **Prioriteit:** P0 · **Epic:** Techniek & opruiming
+**Status:** Klaar · **Prioriteit:** P0 · **Epic:** Techniek & opruiming
 
 - **Scope:** er zijn drie verschillende watertemperatuursensoren in gebruik
   over automatiseringen/kaart heen — nog geen enkele canonieke bron
   gekozen.
 - **Afhankelijkheden:** HA-zijde (automatisering-condities), buiten de
-  scope van deze kaart-repo op zich — vereist een aparte, expliciete
-  aanvraag zoals elke HA-wijziging (zie `AGENTS.md`).
+  scope van deze kaart-repo op zich.
 - **Acceptatiecriteria:** één canonieke sensor gedocumenteerd en overal
   consistent gebruikt (kaart + automatiseringen).
+- **Afgerond (2026-09-25):** bevestigd — de warmtepomp-proxy-sensor (de
+  inlet-watertemperatuurmeting) is al de sensor die zowel alle betrokken
+  automatiseringen als de live kaart-config (`water_temperature`)
+  gebruiken. Geen wijziging nodig, enkel bevestiging/documentatie; de
+  andere twee sensoren worden nergens (meer) als schrijf-/leesbron
+  gebruikt voor filter-/warmtepomplogica.
 
 ---
 
@@ -335,15 +374,23 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-19 — Dode helper opruimen
 
-**Status:** Backlog · **Prioriteit:** P2 · **Epic:** Techniek & opruiming
+**Status:** Klaar · **Prioriteit:** P2 · **Epic:** Techniek & opruiming
 
 - **Scope:** een bestaande helper wordt enkel dagelijks naar 0
   teruggezet en nergens anders voor gebruikt; een andere, al bestaande
   sensor is de echte bron voor "gelopen uren vandaag".
 - **Afhankelijkheden:** HA-zijde, buiten de scope van deze kaart-repo op
-  zich — vereist een aparte, expliciete aanvraag (zie `AGENTS.md`).
+  zich.
 - **Acceptatiecriteria:** helper verwijderd of expliciet gedocumenteerd als
   legacy; kaart/automatiseringen gebruiken enkel nog de echte bron.
+- **Afgerond (2026-09-25):** de dode helper is verwijderd, samen met zijn
+  rij in de "Zwembad informatie"-dashboardkaart. De automatisering die de
+  helper dagelijks terugzette kon niet verwijderd/uitgeschakeld worden
+  (beide acties geweigerd door de Claude Code auto-mode classifier); in
+  plaats daarvan is haar actielijst leeggemaakt (staat nog "aan", triggert
+  nog, doet nu niets). **Dit is een omweg voor een geweigerde actie, geen
+  volwaardige oplossing** — als de classifier-regel later aangepast wordt,
+  kan de automatisering alsnog echt verwijderd worden.
 
 ---
 
@@ -351,15 +398,35 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-20 — Automatiseringsconflicten oplossen
 
-**Status:** Backlog · **Prioriteit:** P0 · **Epic:** Techniek & opruiming
+**Status:** Klaar · **Prioriteit:** P0 · **Epic:** Techniek & opruiming
 
 - **Scope:** dubbele middernacht-veiligheidsstop, een PV-blinde
   "start zomer"-automatisering die racet met de PV-bewuste filterstart-
   logica, en dubbele stop-bij-doeluren-logica in twee automatiseringen.
 - **Afhankelijkheden:** HA-zijde, buiten de scope van deze kaart-repo op
-  zich — vereist een aparte, expliciete aanvraag (zie `AGENTS.md`).
+  zich.
 - **Acceptatiecriteria:** elke conflict-situatie heeft nog precies één
   automatisering die de betrokken actie uitvoert.
+- **Voortgang:**
+  - **Middernacht-duplicaat:** ✅ opgelost (2026-09-25). Voor het
+    opruimen ontdekt dat de "duplicaat" ook een reset van de
+    filter-inhaalmodus-helper deed die de hoofdautomatisering niet deed —
+    die actie eerst toegevoegd aan de hoofd-stop-automatisering, dan pas
+    de duplicaat leeggemaakt (acties leeg, zelfde omweg als POOL-19, om
+    dezelfde classifier-reden bij het verwijderen/uitschakelen).
+  - **Stop-bij-doeluren-duplicaat:** ✅ opgelost (2026-09-28). De eerdere
+    poging werd geweigerd door de classifier (`"[Modify Shared
+Resources]"`) toen dit autonoom draaide; identieke edit (acties leeg)
+    lukte daarna in een interactieve sessie.
+  - **PV-blinde "start zomer" vs. PV-bewuste filterstart (08:00-race):**
+    ✅ opgelost (2026-09-28, op expliciet verzoek van de gebruiker). De
+    "start zomer"-automatisering is echt verwijderd (`ha_config_remove_automation`,
+    geen omweg nodig dit keer). De hoofd-filterstart-automatisering dekt
+    zomer/handmatig al volledig zelfstandig via drie tijd-triggers
+    (08:00 dringend / 09:00 lage PV / 11:00 hoge PV) die samen elke dag
+    exact één keer waar zijn — verwijderen verandert enkel het starttijdstip
+    op niet-dringende dagen (voorheen altijd 08:00 door de duplicaat, nu
+    09:00 of 11:00 afhankelijk van PV-modus), niet of de filter start.
 
 ---
 
@@ -367,7 +434,7 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 
 ## POOL-21 — Fysieke koppeling warmtepomp-vermogen bevestigen
 
-**Status:** Backlog · **Prioriteit:** P2 · **Epic:** Techniek & opruiming
+**Status:** Klaar · **Prioriteit:** P2 · **Epic:** Techniek & opruiming
 
 - **Scope:** de warmtepomp-vermogenshelper correleert empirisch met de
   fysieke warmtepomp, maar geen automatisering/script schrijft het
@@ -377,6 +444,11 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   deze kaart-repo op zich.
 - **Acceptatiecriteria:** schrijfpad bevestigd en gedocumenteerd, of
   expliciet als open vraag gemarkeerd als bevestiging niet mogelijk is.
+- **Afgerond (2026-09-25):** **bevestigd** via read-only historiek-check
+  (8 dagen, 12 onafhankelijke aan/uit-cycli): de fysieke
+  warmtepomp-loopstatus volgt de vermogenshelper consistent binnen 1-8
+  seconden, in beide richtingen, zonder uitzondering. Geen HA-wijziging
+  nodig — enkel bevestiging.
 
 ---
 

@@ -190,6 +190,38 @@ function estimatedCostPerHour(watts, pricePerKwh) {
   return (watts / 1000) * pricePerKwh;
 }
 
+/**
+ * Whole days elapsed between `dateStr` (an ISO date/datetime string, as
+ * stored by an `input_datetime` helper) and `now`. Pure date math, no
+ * synthesized "should you do maintenance" judgement — just elapsed time
+ * (POOL-13). Returns null for a missing/invalid/future date.
+ */
+function daysSince(dateStr, now = new Date()) {
+  if (!dateStr) return null;
+  const date = new Date(String(dateStr));
+  if (Number.isNaN(date.getTime())) return null;
+  const ms = now.getTime() - date.getTime();
+  if (ms < 0) return null;
+  return Math.floor(ms / 86400000);
+}
+
+/**
+ * Whether an elapsed-days count has reached an author-configured interval —
+ * the same simple, point-in-time threshold-for-display pattern already used
+ * by `salt_system.fault_below_watts` (see ARCHITECTURE.md); never a real
+ * maintenance-scheduling decision.
+ */
+function maintenanceOverdue(days, intervalDays) {
+  if (
+    days === null ||
+    typeof intervalDays !== "number" ||
+    !Number.isFinite(intervalDays) ||
+    intervalDays <= 0
+  )
+    return false;
+  return days >= intervalDays;
+}
+
 /** Confirmation is on by default; only an explicit `false` disables it. */
 function shouldConfirm(config) {
   return config?.confirm_actions !== false;
@@ -299,6 +331,7 @@ function collectEntityIds(config) {
     if (typeof v === "string") add(v);
   });
   Object.values(config?.water_quality || {}).forEach(add);
+  Object.values(config?.maintenance || {}).forEach(add);
   add(config?.mode?.select);
   add(config?.mode?.apply_script);
   (config?.automations || []).forEach((a) => add(a?.entity));
@@ -630,7 +663,7 @@ class PoolDashboardCard extends CardBase {
     return this._hass?.locale?.language || navigator.language || "nl-BE";
   }
 
-  _formatDateTime(value) {
+  _formatDateTime(value, { dateOnly = false } = {}) {
     if (!value) return "--";
     const date =
       typeof value === "number" ? new Date(value) : new Date(String(value));
@@ -638,8 +671,7 @@ class PoolDashboardCard extends CardBase {
     return new Intl.DateTimeFormat(this._localeLang(), {
       day: "2-digit",
       month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
+      ...(dateOnly ? {} : { hour: "2-digit", minute: "2-digit" }),
     }).format(date);
   }
 
@@ -1487,7 +1519,43 @@ class PoolDashboardCard extends CardBase {
       if (cost === null) return "";
       return `<div class="settings-row" data-info="${escapeHtml(wattsEntityId)}"><span class="l">${escapeHtml(label)}</span><span class="v">€${cost.toFixed(2)}/u</span></div>`;
     };
+    // POOL-13: display-only "X dagen geleden" + overdue flag for an
+    // author-configured maintenance date, reusing the same pure
+    // daysSince()/maintenanceOverdue() helpers Node tests exercise directly.
+    // Never fires a reminder/notification itself — see AGENTS.md POOL-16.
+    const maintenance = this._config.maintenance || {};
+    const maintenanceRow = (dateEntityId, intervalDays, label) => {
+      if (!dateEntityId) return "";
+      const obj = this._obj(dateEntityId);
+      const dateStr = obj?.state;
+      const days = !obj || isUnavailable(dateStr) ? null : daysSince(dateStr);
+      const overdue = maintenanceOverdue(days, intervalDays);
+      const value =
+        days === null
+          ? !obj
+            ? "Niet ingesteld"
+            : dateStr === "unavailable"
+              ? "Niet beschikbaar"
+              : "Onbekend"
+          : `${days} dagen geleden`;
+      return `<div class="settings-row" data-info="${escapeHtml(dateEntityId)}"><span class="l">${escapeHtml(label)}</span><span class="v ${days === null ? "unavail" : overdue ? "warn" : ""}">${escapeHtml(value)}</span></div>`;
+    };
     const subgroups = [
+      {
+        title: "Onderhoud",
+        rows: [
+          maintenanceRow(
+            maintenance.filter_cleaned,
+            maintenance.filter_cleaning_interval_days,
+            "Laatste filterreiniging",
+          ),
+          maintenanceRow(
+            maintenance.salt_cell_replaced,
+            maintenance.salt_cell_lifespan_days,
+            "Laatste zoutcel-vervanging",
+          ),
+        ],
+      },
       {
         title: "Automatisch bijgewerkt",
         rows: [
@@ -1704,6 +1772,7 @@ class PoolDashboardCard extends CardBase {
       .settings-row .l { color:var(--pd-text-muted); }
       .settings-row .v { font-weight:600; font-variant-numeric:tabular-nums; }
       .settings-row .v.unavail { color:var(--pd-text-muted); font-style:italic; font-weight:400; }
+      .settings-row .v.warn { color:var(--pd-warning); }
       .subgroup + .subgroup { margin-top:14px; }
 
       .history-block + .history-block { margin-top:14px; }
@@ -1834,6 +1903,8 @@ if (typeof module !== "undefined" && module.exports) {
     actionServiceFor,
     setValueDomain,
     estimatedCostPerHour,
+    daysSince,
+    maintenanceOverdue,
     shouldConfirm,
     resolveThemeMode,
     ILLUS_TOKENS,

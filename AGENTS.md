@@ -200,3 +200,43 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   illustration HTML (light and dark theme) before merging. No
   entity-key-contract change beyond the existing optional
   `comfort_score` field.
+
+- 2026-09-25 — HA-backend batch approved (POOL-5/13/18/19/20/21): the
+  user approved building the season-mode backend (§5) and the other
+  HA-side tickets at once. Live HA config work (POOL-5, 19, 20) and
+  read-only confirmations (POOL-18, POOL-21) done directly against Home
+  Assistant this session; POOL-13 needs new HA helpers plus a repo-side
+  card change and is not started yet — see `docs/planning/tickets.md` for
+  per-ticket detail. Two automation edits were denied by the Claude Code
+  auto-mode classifier (reason `"[Modify Shared Resources]"`, not an HA
+  or approval issue) and left unmodified rather than routed around;
+  `docs/planning/tickets.md#pool-5` and `#pool-20` flag exactly which,
+  including a 2026-10-01 date by which the unmigrated automation reverts
+  to old month-based logic while its siblings stay on the manual season
+  selector. No entity-key-contract change; the card's `mode.select`/
+  `mode.apply_script` are deliberately still unset in live config per the
+  design doc's rollout plan (card wired in last, once all 5 automations
+  are migrated).
+- 2026-09-28 — the two classifier-blocked automation edits (POOL-5's 5th
+  automation, POOL-20's second duplicate) were retried in an interactive
+  session and both succeeded on the first attempt, unchanged from what
+  was blocked before — the classifier appears to default to denying a
+  risky-looking action when running autonomously with no one present to
+  confirm it, rather than requiring a standing permission-rule change.
+  POOL-5 is now 5/5 automations migrated (card still deliberately
+  unwired, per rollout plan). For POOL-20's remaining conflict (the
+  08:00 "start zomer" race), the user chose outright removal over
+  accepting the overlap — the duplicate automation was deleted for real
+  this time (`ha_config_remove_automation`, no `actions: []` workaround
+  needed), since the main filter-start automation already covers summer
+  independently via three mutually-exclusive time-gated conditions.
+  POOL-20 is now fully resolved.
+- POOL-13 — new optional top-level `maintenance` field (`filter_cleaned`,
+  `filter_cleaning_interval_days`, `salt_cell_replaced`,
+  `salt_cell_lifespan_days`), rendered as a new "Onderhoud" subsection at
+  the top of **Instellingen**: "N dagen geleden" via a new pure
+  `daysSince()` helper, with an optional overdue flag from a new pure
+  `maintenanceOverdue()` helper — same simple-threshold-for-display
+  pattern as `salt_system.fault_below_watts`, no reminder/notification
+  logic (that stays out of scope, see POOL-16). Backed by two new live
+  `input_datetime` helpers. On its own branch/PR, not merged.
