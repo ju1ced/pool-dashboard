@@ -289,3 +289,10 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   green (39/39 tests). This closes out the full backlog — the only
   remaining backlog item (POOL-16) was already reassessed as out of
   scope for a card, not left undone.
+- **v1.0.0 (2026-09-28)** — first full release. Every backlog ticket that
+  was actionable is Klaar; POOL-16 is the sole deliberate exception,
+  reassessed as not a good fit for a card and left documented rather
+  than built. The card's entity-key-contract, `deriveStatus` precedence,
+  and every design decision recorded above this line are the stable
+  baseline going forward — new fields are additive, not breaking
+  changes to what's already shipped.
