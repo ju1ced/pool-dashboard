@@ -697,15 +697,26 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
 - **Acceptatiecriteria:** geen visuele overlap tussen naburige badges in
   de onderste rij bij realistische waarden (3-4 cijfers), getest met een
   playwright-screenshot.
-- **Afgerond:** op voorstel van de gebruiker — bij volledige breedte
-  (desktop) gaat `.pool-hero-row`'s verhouding illustratie/snelle-
-  bediening van 1:1 naar 3:1 (`grid-template-columns: 3fr 1fr`), wat de
-  illustratie beduidend breder maakt en zo de badges meer ruimte geeft.
-  Onder 640px blijft de bestaande enkele-kolom-fallback ongewijzigd.
-  Geverifieerd met een playwright-screenshot op volledige breedte (1100px):
-  Doel/Verbruik overlappen niet meer. Geen dynamische
-  badge-herverdeling geïmplementeerd — deze eenvoudigere fix loste het
-  concrete probleem al op.
+- **Afgerond (v1):** bij volledige breedte ging `.pool-hero-row`'s
+  verhouding illustratie/snelle-bediening van 1:1 naar 3:1
+  (`grid-template-columns: 3fr 1fr`).
+- **Herzien (v2):** de 3:1-ratio liet de illustratie onbeperkt meegroeien
+  op brede schermen en kneep "Snelle bediening" te smal — vervangen door
+  `grid-template-columns: minmax(0,640px) 1fr`, wat beide oploste zonder
+  de verhouding zelf als vaste breuk te forceren.
+- **Herzien (v3, definitieve oplossing):** de gebruiker gaf de voorkeur
+  aan een simpele 50/50-verhouding boven elke aangepaste ratio
+  (`grid-template-columns` terug naar `1fr 1fr`). Het onderliggende
+  badge-overlapprobleem is in plaats daarvan structureel opgelost:
+  Filter+Verbruik, Zout+Verbruik en Doel+Verbruik zijn elk samengevoegd
+  tot één badge per uitrusting (bv. "3.2/8h · 370W") i.p.v. twee
+  losse, naast elkaar concurrerende badges — dit sluit overlap principieel
+  uit, ongeacht illustratiebreedte, in plaats van er via lay-outtrucs
+  omheen te werken. `.pi-badge`'s label/waarde-lettergrootte ook licht
+  verkleind (9px/11px) voor extra ademruimte. Geverifieerd met een
+  playwright-screenshot bij een worst-case configuratie (alle
+  bodemrij-badges tegelijk ingevuld) op 900px breedte: geen overlap meer.
+  `npm run verify` groen (41/41 tests).
 
 ---
 

@@ -380,3 +380,16 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   rectangle that used to sit at the return's position was replaced by
   the new fitting rather than kept alongside it. Verified with
   Playwright screenshots in both light and dark theme.
+- POOL-28 v3 (user feedback: even `minmax(0,640px) 1fr` still didn't
+  read as balanced — wanted plain 50/50 back). `.pool-hero-row` reverted
+  to `grid-template-columns: 1fr 1fr`. Since that reintroduces the
+  original badge-overlap risk at typical widths, fixed the root cause
+  instead of the symptom this time: Filter+Verbruik, Zout+Verbruik and
+  Doel+Verbruik are each now a single combined badge ("3.2/8h · 370W"
+  etc.) instead of two adjacent badges competing for the same 9%-of-width
+  gap. This rules out the overlap structurally, independent of
+  illustration width, rather than relying on the illustration always
+  being wide enough. `.pi-badge` label/value font-size also trimmed
+  slightly (9px/11px) for extra breathing room. Verified with a
+  Playwright screenshot at a worst-case config (every bottom-row badge
+  populated at once) at 900px width — no overlap.
