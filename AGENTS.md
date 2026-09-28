@@ -296,3 +296,19 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   and every design decision recorded above this line are the stable
   baseline going forward — new fields are additive, not breaking
   changes to what's already shipped.
+- POOL-27 — new optional `heater.outlet_temperature` field, paired with
+  the existing top-level `water_temperature` (the inlet reading) as a
+  new pure, Node-tested `heaterFlowTemperatures()` helper (same pattern
+  as `saltSystemFault`/`frostProtectionStatus`). Renders a "Water in/uit"
+  badge on the illustration only while `heater_power` is on and both
+  readings are live numbers, so it never shows a stale pair from before
+  the heater last ran. Verified with a Playwright screenshot.
+  **Discovered while testing, not caused by this change:** the existing
+  "Doel"/"Verbruik" badges at the heater already overlap visually once
+  both hold realistic values — `.pi-badge .val` is `white-space:nowrap`
+  with padding, easily wider than the 9%-of-width gap between their
+  fixed positions. Reproduces with just `target_temperature` +
+  `heater.power_draw` configured, no new fields involved — filed as
+  POOL-28 rather than silently fixed, since a real solution needs a
+  layout decision (dynamic spacing vs. two-layer badges vs. more compact
+  values), not a quick patch.

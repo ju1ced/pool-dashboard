@@ -7,9 +7,10 @@ Kanban-bord-Artifact — zie `AGENTS.md`/changelog voor de aanleiding.
 
 ## Backlog
 
-| Ticket                        | Onderwerp                   | Prioriteit | Afhankelijkheid                                                           |
-| ----------------------------- | --------------------------- | ---------- | ------------------------------------------------------------------------- |
-| [POOL-16](tickets.md#pool-16) | Meldingen/alerts-voorkeuren | P1         | Herbeoordeeld: geen goede fit voor een kaart, hoort bij HA-automatisering |
+| Ticket                        | Onderwerp                                | Prioriteit | Afhankelijkheid                                                           |
+| ----------------------------- | ---------------------------------------- | ---------- | ------------------------------------------------------------------------- |
+| [POOL-16](tickets.md#pool-16) | Meldingen/alerts-voorkeuren              | P1         | Herbeoordeeld: geen goede fit voor een kaart, hoort bij HA-automatisering |
+| [POOL-28](tickets.md#pool-28) | Doel-/Verbruik-badges overlappen visueel | P1         | Ontdekt tijdens testen van POOL-27; ontwerpkeuze nodig, zie tickets.md    |
 
 ## Gepland
 
@@ -52,6 +53,7 @@ Geen tickets.
 | [POOL-26](tickets.md#pool-26) | GUI-editor uitgebreid naar alle configvelden     | P1         |
 | [POOL-7](tickets.md#pool-7)   | Modus-indicator op de illustratie                | P1         |
 | [POOL-8](tickets.md#pool-8)   | Vorstbeveiliging expliciet zichtbaar             | P1         |
+| [POOL-27](tickets.md#pool-27) | Inlet-/uitlaat-watertemperatuur bij warmtepomp   | P2         |
 
 ## Geblokkeerd
 

@@ -23,6 +23,7 @@ const {
   deriveStatus,
   saltSystemFault,
   frostProtectionStatus,
+  heaterFlowTemperatures,
   historyBars,
   THEME_TOKENS,
   ILLUS_TOKENS,
@@ -582,4 +583,68 @@ test("setConfigPath deletes the key on undefined instead of storing it", () => {
 
   const nested = setConfigPath(config, "filter.pump", undefined);
   assert.ok(!("pump" in nested.filter));
+});
+
+test("heaterFlowTemperatures pairs inlet/outlet only while the heater runs", () => {
+  const config = {
+    water_temperature: "sensor.inlet",
+    heater_power: "input_boolean.heater",
+    heater: { outlet_temperature: "sensor.outlet" },
+  };
+  assert.deepEqual(
+    heaterFlowTemperatures(config, {
+      states: {
+        "sensor.inlet": { state: "27.4" },
+        "sensor.outlet": { state: "29.1" },
+        "input_boolean.heater": { state: "on" },
+      },
+    }),
+    { inlet: 27.4, outlet: 29.1 },
+  );
+  assert.equal(
+    heaterFlowTemperatures(config, {
+      states: {
+        "sensor.inlet": { state: "27.4" },
+        "sensor.outlet": { state: "29.1" },
+        "input_boolean.heater": { state: "off" },
+      },
+    }),
+    null,
+  );
+});
+
+test("heaterFlowTemperatures is never active without both readings configured and live", () => {
+  assert.equal(
+    heaterFlowTemperatures(
+      {
+        water_temperature: "sensor.inlet",
+        heater_power: "input_boolean.heater",
+      },
+      {
+        states: {
+          "sensor.inlet": { state: "27.4" },
+          "input_boolean.heater": { state: "on" },
+        },
+      },
+    ),
+    null,
+  );
+  assert.equal(
+    heaterFlowTemperatures(
+      {
+        water_temperature: "sensor.inlet",
+        heater_power: "input_boolean.heater",
+        heater: { outlet_temperature: "sensor.outlet" },
+      },
+      {
+        states: {
+          "sensor.inlet": { state: "unavailable" },
+          "sensor.outlet": { state: "29.1" },
+          "input_boolean.heater": { state: "on" },
+        },
+      },
+    ),
+    null,
+  );
+  assert.equal(heaterFlowTemperatures({}, { states: {} }), null);
 });

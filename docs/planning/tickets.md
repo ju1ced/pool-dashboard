@@ -629,3 +629,59 @@ Resources]"`) toen dit autonoom draaide; identieke edit (acties leeg)
   op, inclusief het volledig verdwijnen van een leeggemaakt veld i.p.v.
   een lege string. `npm run verify` groen (37/37 tests). Gemerged via
   PR #13, gereleased als v0.7.0.
+
+---
+
+<a id="pool-27"></a>
+
+## POOL-27 — Inlet-/uitlaat-watertemperatuur naast warmtepomp-verbruik
+
+**Status:** Klaar · **Prioriteit:** P2 · **Epic:** Kaart-UX
+
+- **Scope:** naast het "Verbruik"-badge bij de warmtepomp, ook de inlet-
+  en uitlaat-watertemperatuur tonen wanneer de warmtepomp draait.
+- **Afhankelijkheden:** geen — hergebruikt de bestaande top-level
+  `water_temperature` (inlet, POOL-18's canonieke keuze) plus een nieuw
+  optioneel `heater.outlet_temperature`-veld.
+- **Acceptatiecriteria:** badge toont enkel wanneer `heater_power` aan
+  staat én beide metingen live getallen zijn (nooit een verouderd paar
+  van vóór de laatste keer dat de warmtepomp draaide); `npm run verify`
+  groen.
+- **Afgerond:** nieuwe pure, Node-geteste `heaterFlowTemperatures()`-
+  helper (zelfde patroon als `saltSystemFault`/`frostProtectionStatus`).
+  Nieuwe "Water in/uit"-badge op de illustratie, boven de bestaande
+  Doel/Verbruik-rij. Geverifieerd met een playwright-screenshot van de
+  gerenderde kaart (warmtepomp aan, realistische in/uit-waarden).
+  `npm run verify` groen (41/41 tests). **Tijdens het testen ontdekt:**
+  zie POOL-28 voor een reeds bestaand, niet door dit ticket veroorzaakt
+  visueel probleem in dezelfde badge-rij.
+
+---
+
+<a id="pool-28"></a>
+
+## POOL-28 — Doel-/Verbruik-badges overlappen visueel bij de warmtepomp
+
+**Status:** Backlog · **Prioriteit:** P1 · **Epic:** Basis
+
+- **Scope:** ontdekt tijdens het testen van POOL-27 (niet door dat ticket
+  veroorzaakt — reproduceert ook zonder de nieuwe inlet/uitlaat-badge,
+  enkel met `target_temperature` + `heater.power_draw` geconfigureerd,
+  wat vermoedelijk al het geval is op de live kaart). De "Doel"- en
+  "Verbruik"-badges bij de warmtepomp (posities 78.7%/87.7%, 9% uit
+  elkaar) overlappen elkaar visueel zodra beide een realistische waarde
+  tonen — `.pi-badge .val` heeft `white-space:nowrap` plus
+  `padding:3px 8px`, dus een waarde als "1450 W" is makkelijk breder dan
+  de 9%-tussenruimte (~40px in een illustratie van ~450px breed) toelaat.
+  Waarschijnlijk ook zichtbaar bij andere dicht-bij-elkaar-liggende
+  badge-paren in dezelfde rij (bv. Filter/Verbruik-filter, Zout/
+  Verbruik-zout) zodra hun waarden lang genoeg zijn.
+- **Afhankelijkheden:** geen.
+- **Acceptatiecriteria:** geen visuele overlap tussen naburige badges in
+  de onderste rij bij realistische waarden (3-4 cijfers), getest met een
+  playwright-screenshot.
+- **Voorstel (niet geïmplementeerd):** ofwel de badge-rij dynamisch
+  verdelen over enkel de daadwerkelijk geconfigureerde badges i.p.v.
+  vaste percentages voor 8 mogelijke slots, ofwel de rij in twee lagen
+  splitsen, ofwel labels/waarden compacter maken op deze specifieke rij.
+  Vereist een ontwerpkeuze — niet eenzijdig doorgevoerd.
