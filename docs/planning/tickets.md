@@ -803,3 +803,66 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   samen geconfigureerd) op een brede viewport (1500px, vergelijkbaar met
   de live TV/monitor-dashboard-breedte in de gerapporteerde screenshot):
   geen overlap meer. `npm run verify` groen (41/41 tests).
+
+---
+
+<a id="pool-31"></a>
+
+## POOL-31 — Bodemrij-badges clusterden onder Zoutsysteem i.p.v. verspreid
+
+**Status:** Klaar · **Prioriteit:** P1 · **Epic:** Basis
+
+- **Scope:** gebruiker meldde via een live screenshot dat na POOL-28 v4
+  (flex-wrap-rij) alle bodemrij-badges (Filter/pH/ORP/Zout/Doel) als één
+  geclusterd blok in het midden van de uitrustingsrij stonden — visueel
+  onder "Zoutsysteem" — i.p.v. verspreid zodat Filter bij Filterpomp en
+  Doel bij Warmtepomp staat, zoals vóór POOL-28.
+- **Afhankelijkheden:** POOL-28 v4.
+- **Acceptatiecriteria:** badges verspreiden zich over de volledige
+  breedte van de uitrustingsrij (Filter links, Doel rechts), blijven
+  tegelijk wrap-veilig (geen overlap) op elke breedte.
+- **Oorzaak:** `.pi-bottom-row` gebruikte `justify-content:center`, wat
+  de vijf flex-items als één samenhangend blok centreert op hun eigen
+  totale breedte i.p.v. ze over de volledige rij te verspreiden.
+- **Afgerond:** `justify-content:center` → `justify-content:space-between`.
+  Bij één rij (past alles) spreiden de badges nu over de volledige
+  breedte, dicht bij hun eigen uitrusting; bij het wrappen naar een
+  tweede regel (smalle breedtes) verspreidt elke regel zich apart, blijft
+  overlap-veilig. Geverifieerd met een playwright-screenshot die het
+  gerapporteerde scenario naboot (warmtepomp-storing, alle
+  bodemrij-velden ingevuld) op 1500px breedte. `npm run verify` groen
+  (41/41 tests).
+- **Zijdelings ontdekt (niet opgelost, apart genoteerd):** bij erg smalle
+  illustratiebreedtes (bv. ~340px, kaart ~700px) worden de HTML-badges
+  (vaste px-lettergrootte/padding) proportioneel te groot t.o.v. de
+  SVG-illustratie eronder (die wél percentage-schaalt), wat tot visuele
+  chaos kan leiden los van dit ticket's fix. De gebruiker's live
+  dashboard rendert altijd op een brede (TV/monitor-schaal) breedte,
+  dus niet urgent, maar een structurele oplossing (bv. `clamp()`- of
+  viewBox-relatieve badge-afmetingen) is nog niet geïmplementeerd —
+  zie backlog.
+
+---
+
+<a id="pool-32"></a>
+
+## POOL-32 — Badges schalen niet mee met de illustratie bij erg smalle breedtes
+
+**Status:** Backlog · **Prioriteit:** P2 · **Epic:** Basis
+
+- **Scope:** ontdekt tijdens het testen van POOL-31. De HTML-overlay-
+  badges (`.pi-badge`, `.pi-float-therm`, etc.) gebruiken vaste
+  px-lettergrootte/padding, terwijl de SVG-illustratie eronder
+  percentage-schaalt met de containerbreedte. Bij erg smalle
+  illustratiebreedtes (bv. ~340px) worden de badges daardoor
+  proportioneel te groot t.o.v. de illustratie, wat tot visuele
+  chaos/overlap kan leiden.
+- **Afhankelijkheden:** geen.
+- **Acceptatiecriteria:** badges blijven leesbaar en niet-overlappend
+  op elke illustratiebreedte, inclusief het smalle-scherm-scenario.
+- **Niet opgelost:** vereist een structurele aanpak (bv. CSS
+  `clamp()`/`container query`-gebaseerde lettergrootte, of
+  viewBox-relatieve badge-afmetingen via SVG `<foreignObject>` i.p.v.
+  een losse HTML-overlay). Niet urgent — de gebruiker's live dashboard
+  rendert altijd op een brede (TV/monitor-schaal) breedte — maar wel
+  relevant voor andere HACS-gebruikers met smallere schermen.

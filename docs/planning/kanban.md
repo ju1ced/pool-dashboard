@@ -7,9 +7,10 @@ Kanban-bord-Artifact — zie `AGENTS.md`/changelog voor de aanleiding.
 
 ## Backlog
 
-| Ticket                        | Onderwerp                   | Prioriteit | Afhankelijkheid                                                           |
-| ----------------------------- | --------------------------- | ---------- | ------------------------------------------------------------------------- |
-| [POOL-16](tickets.md#pool-16) | Meldingen/alerts-voorkeuren | P1         | Herbeoordeeld: geen goede fit voor een kaart, hoort bij HA-automatisering |
+| Ticket                        | Onderwerp                                       | Prioriteit | Afhankelijkheid                                                           |
+| ----------------------------- | ----------------------------------------------- | ---------- | ------------------------------------------------------------------------- |
+| [POOL-16](tickets.md#pool-16) | Meldingen/alerts-voorkeuren                     | P1         | Herbeoordeeld: geen goede fit voor een kaart, hoort bij HA-automatisering |
+| [POOL-32](tickets.md#pool-32) | Badges schalen niet mee bij erg smalle breedtes | P2         | Niet urgent (live dashboard is altijd breed), zie tickets.md              |
 
 ## Gepland
 
@@ -56,6 +57,7 @@ Geen tickets.
 | [POOL-28](tickets.md#pool-28) | Doel-/Verbruik-badges overlappen visueel                      | P1         |
 | [POOL-29](tickets.md#pool-29) | Wintermodus: geen automatische actie (incl. vorstbeveiliging) | P0         |
 | [POOL-30](tickets.md#pool-30) | Modus-badge overlapte met "Warmtepomp"-label                  | P1         |
+| [POOL-31](tickets.md#pool-31) | Bodemrij-badges clusterden onder Zoutsysteem                  | P1         |
 
 ## Geblokkeerd
 
