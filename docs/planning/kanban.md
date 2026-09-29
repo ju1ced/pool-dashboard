@@ -58,6 +58,7 @@ Geen tickets.
 | [POOL-29](tickets.md#pool-29) | Wintermodus: geen automatische actie (incl. vorstbeveiliging) | P0         |
 | [POOL-30](tickets.md#pool-30) | Modus-badge overlapte met "Warmtepomp"-label                  | P1         |
 | [POOL-31](tickets.md#pool-31) | Bodemrij-badges clusterden onder Zoutsysteem                  | P1         |
+| [POOL-33](tickets.md#pool-33) | Badges per uitrusting geclusterd i.p.v. één globale rij       | P0         |
 
 ## Geblokkeerd
 

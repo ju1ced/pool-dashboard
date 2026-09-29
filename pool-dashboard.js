@@ -1322,98 +1322,96 @@ class PoolDashboardCard extends CardBase {
             ${fault ? `<div class="pi-warn-pill" style="${pos(63.9, 57.6)}">▲ debietfout</div>` : ""}
             ${equipLabel(83.2, 47.4, this._config.heater_power, heaterLabel)}
             ${(() => {
-              // Bottom-row badges are spaced dynamically over however many of
-              // these five actually render, instead of 5 fixed percentages
-              // sized for the fullest case — a fixed layout either wastes
-              // space (few badges) or collides (many badges, since combined
-              // values like "3.2/8h · 370W" need more room than a single
-              // short label ever did). See POOL-28.
-              const entries = [];
-              if (
-                this._config.filter?.hours_today ||
-                this._config.filter?.power_draw
-              ) {
-                entries.push({
-                  entity:
-                    this._config.filter?.hours_today ||
-                    this._config.filter?.power_draw,
+              // Each piece of equipment gets its own small badge cluster,
+              // anchored (translateX(-50%)) under that equipment's own x
+              // position, holding that equipment's own readings as
+              // SEPARATE badges (never combined into one "a · b" value —
+              // POOL-33 reverted POOL-28 v3's combining after live
+              // feedback that it read confusingly). A capped max-width
+              // per cluster keeps it from drifting into a neighbouring
+              // piece of equipment's territory; flex-wrap inside a
+              // cluster is the overlap-safety net from POOL-28 v4, now
+              // scoped to one cluster instead of the whole row.
+              const badgeCluster = (leftAnchor, maxWidthPct, entries) => {
+                if (!entries.length) return "";
+                return `<div class="pi-badge-cluster" style="left:${leftAnchor}%; max-width:${maxWidthPct}%;">${entries
+                  .map(
+                    (e) => `
+                  <div class="pi-badge" data-info="${escapeHtml(e.entity)}">
+                    <span class="lbl">${escapeHtml(e.label)}</span>
+                    <span class="val">${escapeHtml(e.value)}</span>
+                  </div>`,
+                  )
+                  .join("")}</div>`;
+              };
+
+              const filterEntries = [];
+              if (this._config.filter?.hours_today) {
+                filterEntries.push({
+                  entity: this._config.filter.hours_today,
                   label: "Filter",
-                  value: [
-                    this._config.filter?.hours_today
-                      ? `${filterHours.value}${this._config.filter?.hours_target ? `/${filterTarget.value}` : ""}h`
-                      : null,
-                    this._config.filter?.power_draw
-                      ? `${pumpPower.value}W`
-                      : null,
-                  ]
-                    .filter(Boolean)
-                    .join(" · "),
+                  value: `${filterHours.value}${this._config.filter?.hours_target ? `/${filterTarget.value}` : ""}h`,
                 });
               }
+              if (this._config.filter?.power_draw) {
+                filterEntries.push({
+                  entity: this._config.filter.power_draw,
+                  label: "Verbruik",
+                  value: `${pumpPower.value}W`,
+                });
+              }
+
+              const saltEntries = [];
               if (this._config.water_quality?.ph) {
-                entries.push({
+                saltEntries.push({
                   entity: this._config.water_quality.ph,
                   label: "pH",
                   value: `${ph.value}${ph.unit ? ` ${ph.unit}` : ""}`,
                 });
               }
               if (this._config.water_quality?.orp) {
-                entries.push({
+                saltEntries.push({
                   entity: this._config.water_quality.orp,
                   label: "ORP",
                   value: `${orp.value}${orp.unit ? ` ${orp.unit}` : ""}`,
                 });
               }
-              if (
-                this._config.water_quality?.salinity ||
-                this._config.salt_system_fault
-              ) {
-                entries.push({
-                  entity:
-                    this._config.water_quality?.salinity ||
-                    this._config.salt_system_fault,
+              if (this._config.water_quality?.salinity) {
+                saltEntries.push({
+                  entity: this._config.water_quality.salinity,
                   label: "Zout",
-                  value: [
-                    this._config.water_quality?.salinity
-                      ? `${salinity.value}${salinity.unit ? ` ${salinity.unit}` : ""}`
-                      : null,
-                    this._config.salt_system_fault
-                      ? `${saltPower.value}W`
-                      : null,
-                  ]
-                    .filter(Boolean)
-                    .join(" · "),
+                  value: `${salinity.value}${salinity.unit ? ` ${salinity.unit}` : ""}`,
                 });
               }
-              if (
-                this._config.target_temperature ||
-                this._config.heater?.power_draw
-              ) {
-                entries.push({
-                  entity:
-                    this._config.target_temperature ||
-                    this._config.heater?.power_draw,
+              if (this._config.salt_system_fault) {
+                saltEntries.push({
+                  entity: this._config.salt_system_fault,
+                  label: "Verbruik",
+                  value: `${saltPower.value}W`,
+                });
+              }
+
+              const heaterEntries = [];
+              if (this._config.target_temperature) {
+                heaterEntries.push({
+                  entity: this._config.target_temperature,
                   label: "Doel",
-                  value: [
-                    this._config.target_temperature ? `${target.value}°` : null,
-                    this._config.heater?.power_draw
-                      ? `${heaterPower.value}W`
-                      : null,
-                  ]
-                    .filter(Boolean)
-                    .join(" · "),
+                  value: `${target.value}°`,
                 });
               }
-              if (!entries.length) return "";
-              return `<div class="pi-bottom-row">${entries
-                .map(
-                  (e) => `
-                <div class="pi-badge" data-info="${escapeHtml(e.entity)}">
-                  <span class="lbl">${escapeHtml(e.label)}</span>
-                  <span class="val">${escapeHtml(e.value)}</span>
-                </div>`,
-                )
-                .join("")}</div>`;
+              if (this._config.heater?.power_draw) {
+                heaterEntries.push({
+                  entity: this._config.heater.power_draw,
+                  label: "Verbruik",
+                  value: `${heaterPower.value}W`,
+                });
+              }
+
+              return (
+                badgeCluster(19.2, 28, filterEntries) +
+                badgeCluster(51.9, 34, saltEntries) +
+                badgeCluster(83.2, 28, heaterEntries)
+              );
             })()}
           </div>
         </div>
@@ -1894,8 +1892,8 @@ class PoolDashboardCard extends CardBase {
       .pi-overlay { position:absolute; inset:0; }
 
       .pi-badge { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:1px; cursor:pointer; }
-      .pi-bottom-row { position:absolute; left:4%; right:4%; bottom:2.5%; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:3px 8px; }
-      .pi-bottom-row .pi-badge { position:static; transform:none; }
+      .pi-badge-cluster { position:absolute; bottom:2.5%; transform:translateX(-50%); display:flex; flex-wrap:wrap; justify-content:center; align-items:flex-end; gap:3px 6px; }
+      .pi-badge-cluster .pi-badge { position:static; transform:none; }
       .pi-badge .lbl { font-size:9px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--pd-text-muted); }
       .pi-badge .val { font-weight:700; font-size:11px; color:var(--pd-illus-screen-text); background:var(--pd-illus-screen);
         border-radius:6px; padding:2px 5px; font-variant-numeric:tabular-nums; white-space:nowrap; }

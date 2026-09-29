@@ -866,3 +866,67 @@ enkel in het gitignored `docs/discovery/inventory.local.md`.
   een losse HTML-overlay). Niet urgent — de gebruiker's live dashboard
   rendert altijd op een brede (TV/monitor-schaal) breedte — maar wel
   relevant voor andere HACS-gebruikers met smallere schermen.
+
+---
+
+<a id="pool-33"></a>
+
+## POOL-33 — Badges per uitrusting geclusterd i.p.v. één globale rij
+
+**Status:** Klaar · **Prioriteit:** P0 · **Epic:** Basis
+
+- **Scope:** na drie mislukte pogingen (POOL-28 v1-v4/POOL-31) gaf de
+  gebruiker een precieze, expliciete probleemomschrijving: (1) waardes
+  moeten bij hun correcte fysieke uitrusting staan (Filter-waardes bij
+  Filterpomp, pH/ORP/Zout bij Zoutsysteem, Doel bij Warmtepomp — niet
+  ergens los tussenin), en (2) Verbruik mag niet samengevoegd worden met
+  een andere waarde in één badge (bv. "27° · 619W") — elke meting krijgt
+  zijn eigen badge. Live screenshot bevestigde: pH stond onder Filter,
+  Zout stond tussen Zoutsysteem en Warmtepomp in, en Doel/Verbruik stonden
+  samengevoegd.
+- **Afhankelijkheden:** vervangt/corrigeert POOL-28 v3 (het samenvoegen
+  van waardes, nu teruggedraaid) en POOL-28 v4/POOL-31 (de globale
+  flex-wrap-rij, die geen rekening hield met welke waarde bij welke
+  uitrusting hoort).
+- **Acceptatiecriteria:** elke waarde staat visueel bij zijn eigen
+  uitrusting; geen enkele waarde wordt met een andere samengevoegd in
+  één badge; geen overlap, op geen enkele geteste breedte.
+- **Oorzaak van de vorige mislukkingen:** POOL-28 v3 combineerde waardes
+  in één badge-string ("3.2/8h · 370W") om overlap te voorkomen — loste
+  de overlap deels op maar maakte de kaart moeilijker leesbaar (twee
+  metingen door elkaar). POOL-28 v4/POOL-31 verving de vaste
+  percentage-posities door één globale flex-wrap-rij over de hele
+  breedte — loste overlap struktureel op, maar centreerde/verspreidde
+  alle badges als één groep zonder rekening te houden met de 3
+  verschillende fysieke ankerpunten (Filterpomp/Zoutsysteem/Warmtepomp),
+  waardoor bv. Zout tussen Zoutsysteem en Warmtepomp in kwam te staan.
+- **Afgerond:** volledig herontworpen als **drie aparte
+  badge-clusters**, elk geankerd (`transform:translateX(-50%)`) op de
+  x-positie van zijn eigen uitrusting (Filterpomp 19,2%, Zoutsysteem
+  51,9%, Warmtepomp 83,2%), elk met een eigen `max-width` zodat een
+  cluster niet in het territorium van een buur kan uitdijen:
+  - **Filterpomp-cluster:** "Filter" (uren) en "Verbruik" (vermogen), elk
+    apart.
+  - **Zoutsysteem-cluster:** "pH", "ORP", "Zout" (zoutgehalte) en
+    "Verbruik" (vermogen), elk apart — vier waardes die allemaal van
+    dezelfde chlorinator/zoutsysteem-hardware komen, nu ook visueel
+    samen gegroepeerd.
+  - **Warmtepomp-cluster:** "Doel" (streeftemperatuur) en "Verbruik"
+    (vermogen), elk apart.
+
+  Elke cluster is zelf nog steeds een `flex-wrap`-container (de
+  overlap-veiligheid uit POOL-28 v4 blijft behouden, nu enkel toegepast
+  binnen één cluster i.p.v. over de hele rij) — bij de vier-waardes-
+  cluster (Zoutsysteem) wrapt "Verbruik" netjes naar een tweede lijn op
+  matige breedtes, zonder de andere twee clusters te raken.
+
+  **Grondig geverifieerd vóór dit als opgelost te beschouwen** (op
+  expliciet verzoek van de gebruiker): playwright-screenshots met een
+  configuratie die de gerapporteerde live situatie exact nabootst (alle
+  velden ingevuld, warmtepomp-storing, dezelfde waardes als in de
+  gerapporteerde screenshot) op zowel een brede viewport (1970px,
+  overeenkomstig de schaal van de gerapporteerde live screenshot) als
+  een matige breedte (1100px, om het wrap-gedrag van de
+  vier-waardes-cluster te testen) — op beide: elke waarde staat bij zijn
+  correcte uitrusting, geen enkele waarde is samengevoegd, geen overlap.
+  `npm run verify` groen (41/41 tests).

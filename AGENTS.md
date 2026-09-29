@@ -441,3 +441,34 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   user's live dashboard always renders wide, but worth fixing properly
   (e.g. `clamp()`-based sizing) for other HACS users on narrower
   screens.
+- POOL-33 — after three unsuccessful attempts (POOL-28 v1–v4, POOL-31),
+  the user gave a precise, explicit problem statement backed by a live
+  screenshot: values must sit visually with their own physical
+  equipment (Filter readings at Filterpomp, pH/ORP/Zout at Zoutsysteem,
+  Doel at Warmtepomp — not floating between them), and Verbruik must
+  never be combined with another value into one badge. Root cause of
+  the prior attempts: POOL-28 v3 combined values into one string
+  ("3.2/8h · 370W") to cut width, which reduced overlap but hurt
+  readability; POOL-28 v4/POOL-31 replaced fixed percentages with a
+  single flex-wrap row spanning the _whole_ width, which fixed overlap
+  structurally but ignored that there are three distinct physical
+  anchor points (Filterpomp/Zoutsysteem/Warmtepomp), so unrelated
+  values (e.g. Zout) could still land between the wrong pair of
+  equipment. Rebuilt as **three separate badge clusters**, each
+  anchored (`transform:translateX(-50%)`) at its own equipment's x
+  position with its own capped `max-width` so it can't drift into a
+  neighbour's territory: Filterpomp cluster (Filter, Verbruik — each
+  its own badge), Zoutsysteem cluster (pH, ORP, Zout, Verbruik — four
+  separate badges, since all four come from the same chlorinator
+  hardware), Warmtepomp cluster (Doel, Verbruik). Each cluster keeps
+  its own `flex-wrap` as the overlap safety net from POOL-28 v4, now
+  scoped per-cluster instead of the whole row — the four-value
+  Zoutsysteem cluster wraps its own second line at moderate widths
+  without touching its neighbours. Verified thoroughly before declaring
+  this done, per explicit user request: Playwright screenshots
+  reproducing the exact reported live scenario (every field populated,
+  heat pump fault, same values as the reported screenshot) at both a
+  wide viewport (1970px, matching the reported screenshot's scale) and
+  a moderate one (1100px, to exercise the four-badge cluster's wrap
+  behaviour) — on both, every value sits at its correct equipment, none
+  are combined, no overlap.
