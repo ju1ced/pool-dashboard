@@ -420,3 +420,24 @@ npm run verify   # structure + syntax + markdownlint + prettier + tests
   reproducing the reported scenario (`mode.select` + `comfort_score` +
   `ambient_temperature` together) at a wide (1500px) viewport matching
   the reported live dashboard's scale.
+- POOL-31 (user report via a live screenshot): after POOL-28 v4's
+  flex-wrap fix, the bottom-row badges (Filter/pH/ORP/Zout/Doel) all
+  clustered together as one centered block near the middle of the
+  equipment row — visually under "Zoutsysteem" — instead of spreading
+  out (Filter near Filterpomp, Doel near Warmtepomp) like before POOL-28.
+  Cause: `.pi-bottom-row` used `justify-content:center`, which centers
+  the flex items as one group on their own combined width rather than
+  spreading them across the row. Changed to
+  `justify-content:space-between` — badges now spread across the full
+  row width when they fit on one line, while still wrapping safely (each
+  wrapped line distributes independently) at narrow widths. Verified
+  with a Playwright screenshot reproducing the reported scenario (heat
+  pump fault, all bottom-row fields populated) at 1500px width.
+  **Found, not fixed, filed as POOL-32:** at very narrow illustration
+  widths (~340px), the HTML overlay badges (fixed px font-size/padding)
+  don't scale down with the SVG illustration underneath (which does
+  scale by percentage), so they can become proportionally oversized and
+  crowd each other — unrelated to POOL-31's fix, not urgent since the
+  user's live dashboard always renders wide, but worth fixing properly
+  (e.g. `clamp()`-based sizing) for other HACS users on narrower
+  screens.

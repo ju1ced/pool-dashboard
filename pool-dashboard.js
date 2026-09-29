@@ -1894,7 +1894,7 @@ class PoolDashboardCard extends CardBase {
       .pi-overlay { position:absolute; inset:0; }
 
       .pi-badge { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:1px; cursor:pointer; }
-      .pi-bottom-row { position:absolute; left:4%; right:4%; bottom:2.5%; display:flex; flex-wrap:wrap; justify-content:center; align-items:flex-end; gap:3px 8px; }
+      .pi-bottom-row { position:absolute; left:4%; right:4%; bottom:2.5%; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:3px 8px; }
       .pi-bottom-row .pi-badge { position:static; transform:none; }
       .pi-badge .lbl { font-size:9px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--pd-text-muted); }
       .pi-badge .val { font-weight:700; font-size:11px; color:var(--pd-illus-screen-text); background:var(--pd-illus-screen);
